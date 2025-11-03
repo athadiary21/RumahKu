@@ -10,6 +10,12 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import DashboardHome from "./pages/dashboard/DashboardHome";
+import CalendarPage from "./pages/dashboard/CalendarPage";
+import KitchenPage from "./pages/dashboard/KitchenPage";
+import FinancePage from "./pages/dashboard/FinancePage";
+import VaultPage from "./pages/dashboard/VaultPage";
+import FamilyPage from "./pages/dashboard/FamilyPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +40,12 @@ const App = () => (
                 }
               >
                 <Route index element={<DashboardHome />} />
+                <Route path="calendar" element={<CalendarPage />} />
+                <Route path="kitchen" element={<KitchenPage />} />
+                <Route path="finance" element={<FinancePage />} />
+                <Route path="vault" element={<VaultPage />} />
+                <Route path="family" element={<FamilyPage />} />
+                <Route path="settings" element={<SettingsPage />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
