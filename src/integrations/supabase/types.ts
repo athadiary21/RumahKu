@@ -282,6 +282,39 @@ export type Database = {
           },
         ]
       }
+      faqs_admin: {
+        Row: {
+          answer: string
+          category: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          published: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          published?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          published?: boolean
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_goals: {
         Row: {
           color: string | null
@@ -376,6 +409,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pricing_tiers_admin: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          features: Json
+          id: string
+          is_popular: boolean
+          name: string
+          price_monthly: number
+          price_yearly: number
+          published: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          features?: Json
+          id?: string
+          is_popular?: boolean
+          name: string
+          price_monthly: number
+          price_yearly: number
+          published?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          features?: Json
+          id?: string
+          is_popular?: boolean
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -616,6 +688,45 @@ export type Database = {
           },
         ]
       }
+      testimonials_admin: {
+        Row: {
+          avatar_url: string | null
+          content: string
+          created_at: string
+          display_order: number | null
+          id: string
+          name: string
+          published: boolean
+          rating: number | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          content: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name: string
+          published?: boolean
+          rating?: number | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name?: string
+          published?: boolean
+          rating?: number | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string
@@ -701,6 +812,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      website_content: {
+        Row: {
+          content: string | null
+          created_at: string
+          data: Json | null
+          id: string
+          key: string
+          published: boolean
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          key: string
+          published?: boolean
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          key?: string
+          published?: boolean
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }

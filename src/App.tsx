@@ -16,6 +16,12 @@ import FinancePage from "./pages/dashboard/FinancePage";
 import VaultPage from "./pages/dashboard/VaultPage";
 import FamilyPage from "./pages/dashboard/FamilyPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import WebsiteContent from "./pages/admin/WebsiteContent";
+import TestimonialsAdmin from "./pages/admin/TestimonialsAdmin";
+import FAQsAdmin from "./pages/admin/FAQsAdmin";
+import PricingAdmin from "./pages/admin/PricingAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +52,20 @@ const App = () => (
                 <Route path="vault" element={<VaultPage />} />
                 <Route path="family" element={<FamilyPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+              </Route>
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="content" element={<WebsiteContent />} />
+                <Route path="testimonials" element={<TestimonialsAdmin />} />
+                <Route path="faqs" element={<FAQsAdmin />} />
+                <Route path="pricing" element={<PricingAdmin />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
@@ -11,13 +13,31 @@ import {
   Users, 
   Settings, 
   LogOut,
-  Menu
+  Menu,
+  ShieldCheck
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ['is-admin', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
@@ -56,6 +76,16 @@ const Dashboard = () => {
       </nav>
 
       <div className="p-4 border-t">
+        {isAdmin && (
+          <Button 
+            variant="outline" 
+            className="w-full justify-start mb-2" 
+            onClick={() => navigate('/admin')}
+          >
+            <ShieldCheck className="mr-3 h-5 w-5" />
+            Admin Panel
+          </Button>
+        )}
         <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
           <LogOut className="mr-3 h-5 w-5" />
           Keluar
