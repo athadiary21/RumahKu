@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   
   return (
     <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -31,10 +33,10 @@ const Navbar = () => {
           
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <Button variant="ghost" className="hidden sm:inline-flex">
+            <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => navigate('/auth')}>
               {t("nav.login")}
             </Button>
-            <Button variant="hero">
+            <Button variant="hero" onClick={() => navigate('/auth')}>
               {t("nav.getStarted")}
             </Button>
           </div>

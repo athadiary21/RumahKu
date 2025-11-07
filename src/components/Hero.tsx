@@ -37,7 +37,9 @@ const Hero = () => {
                 {t("hero.cta1")}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" onClick={() => {
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
                 {t("hero.cta2")}
               </Button>
             </div>

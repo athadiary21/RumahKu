@@ -2,9 +2,31 @@ import { Home, Mail, Phone, Facebook, Instagram, Twitter, Linkedin } from "lucid
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const Footer = () => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({
+        title: 'Error',
+        description: 'Masukkan email Anda',
+        variant: 'destructive',
+      });
+      return;
+    }
+    // TODO: Implement newsletter subscription API
+    toast({
+      title: 'Berhasil!',
+      description: 'Terima kasih telah berlangganan newsletter kami',
+    });
+    setEmail('');
+  };
   
   return (
     <footer className="border-t bg-card">
@@ -83,16 +105,18 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground mb-4">
               {t("footer.newsletterDesc")}
             </p>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
               <Input 
                 type="email" 
                 placeholder={t("footer.email")}
                 className="flex-1"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <Button variant="default" className="sm:w-auto w-full">
+              <Button type="submit" variant="default" className="sm:w-auto w-full">
                 {t("footer.subscribe")}
               </Button>
-            </div>
+            </form>
           </div>
         </div>
         

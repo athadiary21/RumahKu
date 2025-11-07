@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 
 const Pricing = () => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   
   const formatPrice = (amount: number) => {
     if (language === "id") {
@@ -15,6 +17,7 @@ const Pricing = () => {
   
   const plans = [
     {
+      tier: "free",
       nameKey: "pricing.starter.name",
       price: language === "id" ? 0 : "Free",
       descKey: "pricing.starter.desc",
@@ -29,6 +32,7 @@ const Pricing = () => {
       highlighted: false,
     },
     {
+      tier: "family",
       nameKey: "pricing.family.name",
       price: language === "id" ? formatPrice(20000) : "$5",
       descKey: "pricing.family.desc",
@@ -44,6 +48,7 @@ const Pricing = () => {
       highlighted: true,
     },
     {
+      tier: "premium",
       nameKey: "pricing.premium.name",
       price: language === "id" ? formatPrice(100000) : "$25",
       descKey: "pricing.premium.desc",
@@ -124,6 +129,7 @@ const Pricing = () => {
                   variant={plan.highlighted ? "hero" : "outline"}
                   className="w-full"
                   size="lg"
+                  onClick={() => navigate(`/auth?plan=${plan.tier}`)}
                 >
                   {t(plan.ctaKey)}
                 </Button>

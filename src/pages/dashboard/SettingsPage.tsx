@@ -3,10 +3,26 @@ import { Button } from '@/components/ui/button';
 import { Settings, User, Bell, Shield, CreditCard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import SubscriptionSettings from '@/components/SubscriptionSettings';
 
 const SettingsPage = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  
+  const handleUpdateProfile = () => {
+    toast({
+      title: 'Coming Soon',
+      description: 'Fitur update profil akan segera tersedia',
+    });
+  };
+  
+  const handleChangePassword = () => {
+    toast({
+      title: 'Coming Soon',
+      description: 'Fitur ganti password akan segera tersedia',
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -51,7 +67,7 @@ const SettingsPage = () => {
                 <p className="text-sm font-medium mb-2">Email</p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
-              <Button>Update Profil</Button>
+              <Button onClick={handleUpdateProfile}>Update Profil</Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -75,7 +91,7 @@ const SettingsPage = () => {
               <CardDescription>Kelola keamanan akun Anda</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline">Ganti Password</Button>
+              <Button variant="outline" onClick={handleChangePassword}>Ganti Password</Button>
             </CardContent>
           </Card>
         </TabsContent>
