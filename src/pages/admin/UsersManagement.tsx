@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { getAdminUsers, updateUserSubscription } from '@/services/adminApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -40,57 +40,10 @@ const UsersManagement = () => {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: async () => {
-      // Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) throw profilesError;
-
-      const usersData: UserWithSubscription[] = [];
-      
-      for (const profile of profiles) {
-        // Get family membership
-        const { data: familyMember } = await supabase
-          .from('family_members')
-          .select(`
-            family_id,
-            role,
-            family_groups (
-              name
-            )
-          `)
-          .eq('user_id', profile.id)
-          .single();
-
-        if (!familyMember) continue;
-
-        // Get subscription
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('tier, status, current_period_end')
-          .eq('family_id', familyMember.family_id)
-          .single();
-
-        usersData.push({
-          id: profile.id,
-          email: profile.email || '',
-          full_name: profile.full_name || 'Unknown',
-          created_at: new Date().toISOString(),
-          family_id: familyMember.family_id,
-          family_name: (familyMember.family_groups as any)?.name || 'No Family',
-          subscription_tier: subscription?.tier || 'free',
-          subscription_status: subscription?.status || 'active',
-          current_period_end: subscription?.current_period_end || null,
-          role: familyMember.role,
-        });
-      }
-
-      return usersData;
-    },
+    queryFn: getAdminUsers,
   });
+
+
 
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ familyId, tier, status, expiresAt }: { 
@@ -99,16 +52,7 @@ const UsersManagement = () => {
       status: string;
       expiresAt: string;
     }) => {
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({
-          tier,
-          status,
-          current_period_end: expiresAt,
-        })
-        .eq('family_id', familyId);
-
-      if (error) throw error;
+      await updateUserSubscription(familyId, tier, status, expiresAt);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });

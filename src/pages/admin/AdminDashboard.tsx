@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { getDashboardStats } from '@/services/adminApi';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CreditCard, Tag, DollarSign, UserCheck, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -20,102 +20,33 @@ import {
 
 const AdminDashboard = () => {
   // Fetch dashboard statistics
-  const { data: stats, isLoading } = useQuery({
+  const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['admin-dashboard-stats'],
-    queryFn: async () => {
-      const [
-        usersResult,
-        subscriptionsResult,
-        transactionsResult,
-        promoCodesResult,
-        revenueResult,
-      ] = await Promise.all([
-        // Total users
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        
-        // Active subscriptions
-        supabase
-          .from('subscriptions')
-          .select('tier, status', { count: 'exact' })
-          .eq('status', 'active'),
-        
-        // Recent transactions
-        supabase
-          .from('payment_transactions')
-          .select('amount, status, created_at')
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-          .order('created_at', { ascending: false }),
-        
-        // Active promo codes
-        supabase
-          .from('promo_codes')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_active', true),
-        
-        // Monthly revenue
-        supabase
-          .from('payment_transactions')
-          .select('amount, created_at')
-          .eq('status', 'completed')
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
-      ]);
-
-      // Calculate revenue
-      const totalRevenue = revenueResult.data?.reduce((sum, txn) => sum + txn.amount, 0) || 0;
-      const completedTransactions = transactionsResult.data?.filter(t => t.status === 'completed').length || 0;
-      const pendingTransactions = transactionsResult.data?.filter(t => t.status === 'pending').length || 0;
-
-      // Calculate subscription breakdown
-      const subscriptionBreakdown = subscriptionsResult.data?.reduce((acc: any, sub) => {
-        acc[sub.tier] = (acc[sub.tier] || 0) + 1;
-        return acc;
-      }, {}) || {};
-
-      // Calculate daily revenue for chart
-      const dailyRevenue = revenueResult.data?.reduce((acc: any, txn) => {
-        const date = new Date(txn.created_at).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' });
-        acc[date] = (acc[date] || 0) + txn.amount;
-        return acc;
-      }, {}) || {};
-
-      const revenueChartData = Object.entries(dailyRevenue).map(([date, revenue]) => ({
-        date,
-        revenue,
-      })).slice(-14); // Last 14 days
-
-      return {
-        totalUsers: usersResult.count || 0,
-        activeSubscriptions: subscriptionsResult.count || 0,
-        totalRevenue,
-        activePromoCodes: promoCodesResult.count || 0,
-        completedTransactions,
-        pendingTransactions,
-        subscriptionBreakdown,
-        revenueChartData,
-      };
-    },
+    queryFn: getDashboardStats,
   });
 
-  const pieChartData = stats?.subscriptionBreakdown
-    ? Object.entries(stats.subscriptionBreakdown).map(([tier, count]) => ({
-        name: tier.charAt(0).toUpperCase() + tier.slice(1),
-        value: count,
-      }))
-    : [];
+  const stats = dashboardData?.stats;
+  const revenueTrend = dashboardData?.revenueTrend || [];
+  const subscriptionBreakdown = dashboardData?.subscriptionBreakdown || { free: 0, family: 0, premium: 0 };
 
-  const COLORS = {
-    Free: '#94a3b8',
-    Family: '#3b82f6',
-    Premium: '#f59e0b',
-  };
+  // Format revenue trend data for chart
+  const revenueChartData = revenueTrend.map(item => ({
+    date: new Date(item.date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
+    revenue: item.revenue,
+  }));
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Format subscription breakdown for pie chart
+  const pieChartData = [
+    { name: 'Free', value: subscriptionBreakdown.free, color: '#94a3b8' },
+    { name: 'Family', value: subscriptionBreakdown.family, color: '#3b82f6' },
+    { name: 'Premium', value: subscriptionBreakdown.premium, color: '#f59e0b' },
+  ];
+
+  // Calculate transaction completion rate
+  const totalTransactions = (stats?.completed_transactions || 0) + (stats?.pending_transactions || 0);
+  const completionRate = totalTransactions > 0
+    ? Math.round(((stats?.completed_transactions || 0) / totalTransactions) * 100)
+    : 0;
 
   if (isLoading) {
     return (
@@ -124,6 +55,14 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <div className="space-y-6">
@@ -144,7 +83,7 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
+            <div className="text-2xl font-bold">{stats?.total_users || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Registered users
             </p>
@@ -158,7 +97,7 @@ const AdminDashboard = () => {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeSubscriptions || 0}</div>
+            <div className="text-2xl font-bold">{stats?.active_subscriptions || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Paid subscribers
             </p>
@@ -173,7 +112,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(stats?.totalRevenue || 0)}
+              {formatCurrency(stats?.monthly_revenue || 0)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Last 30 days
@@ -188,7 +127,7 @@ const AdminDashboard = () => {
             <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.activePromoCodes || 0}</div>
+            <div className="text-2xl font-bold">{stats?.active_promo_codes || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Available codes
             </p>
@@ -206,7 +145,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={stats?.revenueChartData || []}>
+              <AreaChart data={revenueChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
@@ -267,15 +206,13 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium">Completed</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold">{stats?.completedTransactions || 0}</span>
+                <span className="text-2xl font-bold">{stats?.completed_transactions || 0}</span>
                 <Badge variant="default">Success</Badge>
               </div>
             </div>
             <Progress
               value={
-                stats?.completedTransactions && stats?.pendingTransactions
-                  ? (stats.completedTransactions / (stats.completedTransactions + stats.pendingTransactions)) * 100
-                  : 0
+                completionRate
               }
               className="h-2"
             />
@@ -286,7 +223,7 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium">Pending</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold">{stats?.pendingTransactions || 0}</span>
+                <span className="text-2xl font-bold">{stats?.pending_transactions || 0}</span>
                 <Badge variant="secondary">Waiting</Badge>
               </div>
             </div>
