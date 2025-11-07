@@ -25,6 +25,7 @@ import FAQsAdmin from "./pages/admin/FAQsAdmin";
 import PricingAdmin from "./pages/admin/PricingAdmin";
 import UsersManagement from "./pages/admin/UsersManagement";
 import SubscriptionsManagement from "./pages/admin/SubscriptionsManagement";
+import PromoCodesAdmin from "./pages/admin/PromoCodesAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
                 <Route path="pricing" element={<PricingAdmin />} />
                 <Route path="users" element={<UsersManagement />} />
                 <Route path="subscriptions" element={<SubscriptionsManagement />} />
+                <Route path="promo-codes" element={<PromoCodesAdmin />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

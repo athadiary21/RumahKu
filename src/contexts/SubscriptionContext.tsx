@@ -24,6 +24,9 @@ interface SubscriptionData {
   status: string;
   started_at: string;
   expires_at: string | null;
+  is_trial: boolean;
+  trial_ends_at: string | null;
+  auto_renew: boolean;
 }
 
 interface SubscriptionContextType {
@@ -35,6 +38,8 @@ interface SubscriptionContextType {
   canAddWallet: (currentCount: number) => boolean;
   hasFeature: (feature: string) => boolean;
   isActive: boolean;
+  isTrial: boolean;
+  trialDaysLeft: number | null;
   refreshSubscription: () => Promise<void>;
 }
 
@@ -133,8 +138,31 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const isActive = (): boolean => {
     if (!subscription) return false;
     if (subscription.status !== 'active') return false;
+    
+    // Check trial
+    if (subscription.is_trial && subscription.trial_ends_at) {
+      return new Date(subscription.trial_ends_at) > new Date();
+    }
+    
+    // Check regular subscription
     if (!subscription.expires_at) return true; // no expiry = lifetime
     return new Date(subscription.expires_at) > new Date();
+  };
+
+  const isTrial = (): boolean => {
+    if (!subscription) return false;
+    return subscription.is_trial && 
+           subscription.trial_ends_at !== null &&
+           new Date(subscription.trial_ends_at) > new Date();
+  };
+
+  const getTrialDaysLeft = (): number | null => {
+    if (!subscription?.is_trial || !subscription?.trial_ends_at) return null;
+    const trialEnd = new Date(subscription.trial_ends_at);
+    const now = new Date();
+    const diffTime = trialEnd.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
   };
 
   const refreshSubscription = async () => {
@@ -152,6 +180,8 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         canAddWallet,
         hasFeature,
         isActive: isActive(),
+        isTrial: isTrial(),
+        trialDaysLeft: getTrialDaysLeft(),
         refreshSubscription,
       }}
     >
