@@ -1,18 +1,24 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { CreditCard, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { CreditCard, TrendingUp, Users, DollarSign, Activity, Calendar, Shield, Zap, Crown } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 const SubscriptionsManagement = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [filterTier, setFilterTier] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
@@ -24,7 +30,7 @@ const SubscriptionsManagement = () => {
         .select(`
           *,
           family_groups(name),
-          subscription_tiers(name, price_monthly)
+          subscription_tiers(name, price_monthly, price_yearly)
         `)
         .order('created_at', { ascending: false });
 
@@ -38,7 +44,7 @@ const SubscriptionsManagement = () => {
     queryFn: async () => {
       const { data: allSubs } = await supabase
         .from('subscriptions')
-        .select('tier, status');
+        .select('tier, status, billing_period');
 
       const totalActive = allSubs?.filter(s => s.status === 'active').length || 0;
       const totalFree = allSubs?.filter(s => s.tier === 'free').length || 0;
@@ -48,19 +54,21 @@ const SubscriptionsManagement = () => {
       // Calculate MRR (Monthly Recurring Revenue)
       const { data: tierData } = await supabase
         .from('subscription_tiers')
-        .select('tier, price_monthly');
+        .select('tier, price_monthly, price_yearly');
 
-      const tierPrices = tierData?.reduce((acc, t) => {
-        acc[t.tier] = t.price_monthly;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-      const mrr = allSubs?.reduce((sum, sub) => {
-        if (sub.status === 'active' && sub.tier !== 'free') {
-          return sum + (tierPrices[sub.tier] || 0);
+      let mrr = 0;
+      allSubs?.forEach(sub => {
+        if (sub.status === 'active') {
+          const tier = tierData?.find(t => t.tier === sub.tier);
+          if (tier) {
+            if (sub.billing_period === 'yearly') {
+              mrr += tier.price_yearly / 12;
+            } else {
+              mrr += tier.price_monthly;
+            }
+          }
         }
-        return sum;
-      }, 0) || 0;
+      });
 
       return {
         totalActive,
@@ -68,79 +76,125 @@ const SubscriptionsManagement = () => {
         totalFamily,
         totalPremium,
         mrr,
-        total: allSubs?.length || 0,
       };
     },
   });
 
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async ({ ids, updates }: { ids: string[]; updates: any }) => {
-      const promises = ids.map(id =>
-        supabase
-          .from('subscriptions')
-          .update(updates)
-          .eq('id', id)
-      );
-      await Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-subscription-stats'] });
-      toast({
-        title: 'Berhasil',
-        description: 'Subscriptions berhasil diupdate',
-      });
-    },
-  });
-
-  const filteredSubscriptions = subscriptions.filter(sub => {
+  const filteredSubscriptions = subscriptions.filter((sub: any) => {
     const matchesTier = filterTier === 'all' || sub.tier === filterTier;
     const matchesStatus = filterStatus === 'all' || sub.status === filterStatus;
     return matchesTier && matchesStatus;
   });
 
   const getTierBadge = (tier: string) => {
-    const colors = {
-      free: 'bg-gray-500',
-      family: 'bg-blue-500',
-      premium: 'bg-yellow-500',
+    const variants: Record<string, any> = {
+      free: { variant: 'secondary', icon: Shield, color: 'text-gray-500' },
+      family: { variant: 'default', icon: Zap, color: 'text-blue-500' },
+      premium: { variant: 'default', icon: Crown, color: 'text-yellow-500' },
     };
-    return <Badge className={colors[tier as keyof typeof colors] || 'bg-gray-500'}>{tier}</Badge>;
+    const config = variants[tier] || variants.free;
+    const Icon = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className={`h-3 w-3 ${config.color}`} />
+        {tier.charAt(0).toUpperCase() + tier.slice(1)}
+      </Badge>
+    );
   };
 
   const getStatusBadge = (status: string) => {
-    const colors = {
-      active: 'bg-green-500',
-      expired: 'bg-red-500',
-      cancelled: 'bg-orange-500',
+    const variants: Record<string, string> = {
+      active: 'default',
+      expired: 'destructive',
+      cancelled: 'secondary',
+      trialing: 'outline',
     };
-    return <Badge className={colors[status as keyof typeof colors] || 'bg-gray-500'}>{status}</Badge>;
+    return (
+      <Badge variant={variants[status] as any || 'secondary'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
   };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const chartData = [
+    { name: 'Free', count: stats?.totalFree || 0, color: '#94a3b8' },
+    { name: 'Family', count: stats?.totalFamily || 0, color: '#3b82f6' },
+    { name: 'Premium', count: stats?.totalPremium || 0, color: '#f59e0b' },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Activity className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <CreditCard className="h-8 w-8 text-primary" />
-          Subscriptions Management
+          <CreditCard className="h-8 w-8" />
+          Subscription Management
         </h1>
         <p className="text-muted-foreground mt-2">
-          Kelola semua subscriptions dan lihat statistik
+          Monitor and manage all subscriptions
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Subscriptions</CardTitle>
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats?.totalActive || 0} active
-            </p>
+            <div className="text-2xl font-bold">{stats?.totalActive || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Active subscriptions</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Free</CardTitle>
+            <Shield className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalFree || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Free tier users</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Family</CardTitle>
+            <Zap className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalFamily || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Family tier users</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Premium</CardTitle>
+            <Crown className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalPremium || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Premium tier users</p>
           </CardContent>
         </Card>
 
@@ -150,56 +204,46 @@ const SubscriptionsManagement = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              Rp {(stats?.mrr || 0).toLocaleString('id-ID')}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Monthly Recurring Revenue
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Family Tier</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalFamily || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats?.total ? Math.round((stats.totalFamily / stats.total) * 100) : 0}% of total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Premium Tier</CardTitle>
-            <TrendingUp className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPremium || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats?.total ? Math.round((stats.totalPremium / stats.total) * 100) : 0}% of total
-            </p>
+            <div className="text-2xl font-bold">{formatCurrency(stats?.mrr || 0)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Monthly recurring</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscription Distribution</CardTitle>
+          <CardDescription>Number of subscriptions by tier</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filter Subscriptions</CardTitle>
-          <CardDescription>Filter berdasarkan tier dan status</CardDescription>
+          <CardTitle>Filters</CardTitle>
+          <CardDescription>Filter subscriptions by tier and status</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Select value={filterTier} onValueChange={setFilterTier}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by tier" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Tier</SelectItem>
+                <SelectItem value="all">All Tiers</SelectItem>
                 <SelectItem value="free">Free</SelectItem>
                 <SelectItem value="family">Family</SelectItem>
                 <SelectItem value="premium">Premium</SelectItem>
@@ -207,14 +251,15 @@ const SubscriptionsManagement = () => {
             </Select>
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="expired">Expired</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="trialing">Trialing</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -224,48 +269,82 @@ const SubscriptionsManagement = () => {
       {/* Subscriptions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Subscriptions List ({filteredSubscriptions.length})</CardTitle>
-          <CardDescription>Daftar semua subscriptions</CardDescription>
+          <CardTitle>Subscriptions ({filteredSubscriptions.length})</CardTitle>
+          <CardDescription>List of all subscriptions</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
-          ) : (
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Family</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Started At</TableHead>
-                  <TableHead>Expires At</TableHead>
+                  <TableHead>Billing</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>End Date</TableHead>
                   <TableHead>Price</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSubscriptions.map((sub: any) => (
-                  <TableRow key={sub.id}>
-                    <TableCell className="font-medium">
-                      {sub.family_groups?.name || 'Unknown'}
-                    </TableCell>
-                    <TableCell>{getTierBadge(sub.tier)}</TableCell>
-                    <TableCell>{getStatusBadge(sub.status)}</TableCell>
-                    <TableCell>
-                      {format(new Date(sub.started_at), 'dd MMM yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      {sub.expires_at 
-                        ? format(new Date(sub.expires_at), 'dd MMM yyyy')
-                        : 'Lifetime'}
-                    </TableCell>
-                    <TableCell>
-                      Rp {(sub.subscription_tiers?.price_monthly || 0).toLocaleString('id-ID')}/bulan
+                {filteredSubscriptions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      No subscriptions found
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredSubscriptions.map((sub: any) => (
+                    <TableRow key={sub.id}>
+                      <TableCell className="font-medium">
+                        {sub.family_groups?.name || 'Unknown Family'}
+                      </TableCell>
+                      <TableCell>{getTierBadge(sub.tier)}</TableCell>
+                      <TableCell>{getStatusBadge(sub.status)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {sub.billing_period === 'yearly' ? 'Yearly' : 'Monthly'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {sub.current_period_start ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            {format(new Date(sub.current_period_start), 'dd MMM yyyy')}
+                          </div>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {sub.current_period_end ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            {format(new Date(sub.current_period_end), 'dd MMM yyyy')}
+                          </div>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {sub.subscription_tiers ? (
+                          <span className="text-sm font-medium">
+                            {formatCurrency(
+                              sub.billing_period === 'yearly'
+                                ? sub.subscription_tiers.price_yearly
+                                : sub.subscription_tiers.price_monthly
+                            )}
+                          </span>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>

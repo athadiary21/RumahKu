@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Crown, Search, Edit, Trash2 } from 'lucide-react';
+import { Users, Crown, Search, Edit, Shield, Zap, Calendar, Mail, User, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UserWithSubscription {
@@ -22,7 +22,7 @@ interface UserWithSubscription {
   family_name: string;
   subscription_tier: string;
   subscription_status: string;
-  subscription_expires_at: string | null;
+  current_period_end: string | null;
   role: string;
 }
 
@@ -31,6 +31,7 @@ const UsersManagement = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [editingUser, setEditingUser] = useState<UserWithSubscription | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [newTier, setNewTier] = useState<string>('');
@@ -40,29 +41,27 @@ const UsersManagement = () => {
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      // Get all profiles with their family and subscription info
+      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name')
-        .order('full_name');
+        .select('id, full_name, email')
+        .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
-      // Get auth users
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
-
-      // Combine data
       const usersData: UserWithSubscription[] = [];
       
       for (const profile of profiles) {
-        const authUser = authUsers.find(u => u.id === profile.id);
-        if (!authUser) continue;
-
         // Get family membership
         const { data: familyMember } = await supabase
           .from('family_members')
-          .select('family_id, role, family_groups(name)')
+          .select(`
+            family_id,
+            role,
+            family_groups (
+              name
+            )
+          `)
           .eq('user_id', profile.id)
           .single();
 
@@ -71,20 +70,20 @@ const UsersManagement = () => {
         // Get subscription
         const { data: subscription } = await supabase
           .from('subscriptions')
-          .select('tier, status, expires_at')
+          .select('tier, status, current_period_end')
           .eq('family_id', familyMember.family_id)
           .single();
 
         usersData.push({
           id: profile.id,
-          email: authUser.email || '',
-          full_name: profile.full_name || '',
-          created_at: authUser.created_at,
+          email: profile.email || '',
+          full_name: profile.full_name || 'Unknown',
+          created_at: new Date().toISOString(),
           family_id: familyMember.family_id,
-          family_name: (familyMember.family_groups as any)?.name || '',
+          family_name: (familyMember.family_groups as any)?.name || 'No Family',
           subscription_tier: subscription?.tier || 'free',
           subscription_status: subscription?.status || 'active',
-          subscription_expires_at: subscription?.expires_at || null,
+          current_period_end: subscription?.current_period_end || null,
           role: familyMember.role,
         });
       }
@@ -98,25 +97,24 @@ const UsersManagement = () => {
       familyId: string; 
       tier: string; 
       status: string;
-      expiresAt: string | null;
+      expiresAt: string;
     }) => {
       const { error } = await supabase
         .from('subscriptions')
-        .update({ 
-          tier, 
+        .update({
+          tier,
           status,
-          expires_at: expiresAt,
-          updated_at: new Date().toISOString(),
+          current_period_end: expiresAt,
         })
         .eq('family_id', familyId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({
-        title: 'Berhasil',
-        description: 'Subscription berhasil diupdate',
+        title: 'Success',
+        description: 'Subscription updated successfully',
       });
       setEditDialogOpen(false);
       setEditingUser(null);
@@ -134,162 +132,267 @@ const UsersManagement = () => {
     setEditingUser(user);
     setNewTier(user.subscription_tier);
     setNewStatus(user.subscription_status);
-    setNewExpiresAt(user.subscription_expires_at || '');
+    setNewExpiresAt(user.current_period_end || '');
     setEditDialogOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveChanges = () => {
     if (!editingUser) return;
-    
+
     updateSubscriptionMutation.mutate({
       familyId: editingUser.family_id,
       tier: newTier,
       status: newStatus,
-      expiresAt: newExpiresAt || null,
+      expiresAt: newExpiresAt,
     });
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.family_name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesTier = filterTier === 'all' || user.subscription_tier === filterTier;
-    
-    return matchesSearch && matchesTier;
+    const matchesStatus = filterStatus === 'all' || user.subscription_status === filterStatus;
+
+    return matchesSearch && matchesTier && matchesStatus;
   });
 
   const getTierBadge = (tier: string) => {
-    const colors = {
-      free: 'bg-gray-500',
-      family: 'bg-blue-500',
-      premium: 'bg-yellow-500',
+    const variants: Record<string, any> = {
+      free: { variant: 'secondary', icon: Shield, color: 'text-gray-500' },
+      family: { variant: 'default', icon: Zap, color: 'text-blue-500' },
+      premium: { variant: 'default', icon: Crown, color: 'text-yellow-500' },
     };
-    return <Badge className={colors[tier as keyof typeof colors] || 'bg-gray-500'}>{tier}</Badge>;
+    const config = variants[tier] || variants.free;
+    const Icon = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className={`h-3 w-3 ${config.color}`} />
+        {tier.charAt(0).toUpperCase() + tier.slice(1)}
+      </Badge>
+    );
   };
 
   const getStatusBadge = (status: string) => {
-    const colors = {
-      active: 'bg-green-500',
-      expired: 'bg-red-500',
-      cancelled: 'bg-orange-500',
+    const variants: Record<string, string> = {
+      active: 'default',
+      expired: 'destructive',
+      cancelled: 'secondary',
     };
-    return <Badge className={colors[status as keyof typeof colors] || 'bg-gray-500'}>{status}</Badge>;
+    return (
+      <Badge variant={variants[status] as any || 'secondary'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Activity className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Users className="h-8 w-8 text-primary" />
-          Users Management
+          <Users className="h-8 w-8" />
+          User Management
         </h1>
         <p className="text-muted-foreground mt-2">
-          Kelola semua users dan subscription mereka
+          Manage users and their subscription status
         </p>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{users.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Free Tier</CardTitle>
+            <Shield className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {users.filter((u) => u.subscription_tier === 'free').length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Family Tier</CardTitle>
+            <Zap className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {users.filter((u) => u.subscription_tier === 'family').length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Premium Tier</CardTitle>
+            <Crown className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {users.filter((u) => u.subscription_tier === 'premium').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filter & Search</CardTitle>
-          <CardDescription>Cari dan filter users berdasarkan kriteria</CardDescription>
+          <CardTitle>Filters</CardTitle>
+          <CardDescription>Search and filter users</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Cari berdasarkan email, nama, atau family..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, or family..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
             </div>
+
             <Select value={filterTier} onValueChange={setFilterTier}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger>
                 <SelectValue placeholder="Filter by tier" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Tier</SelectItem>
+                <SelectItem value="all">All Tiers</SelectItem>
                 <SelectItem value="free">Free</SelectItem>
                 <SelectItem value="family">Family</SelectItem>
                 <SelectItem value="premium">Premium</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
+      {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Users List ({filteredUsers.length})</CardTitle>
-          <CardDescription>Daftar semua users terdaftar</CardDescription>
+          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          <CardDescription>List of all registered users</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
-          ) : (
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Family</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Expires At</TableHead>
+                  <TableHead>Expires</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{user.full_name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.family_name}</TableCell>
-                    <TableCell>{getTierBadge(user.subscription_tier)}</TableCell>
-                    <TableCell>{getStatusBadge(user.subscription_status)}</TableCell>
-                    <TableCell>
-                      {user.subscription_expires_at 
-                        ? format(new Date(user.subscription_expires_at), 'dd MMM yyyy')
-                        : 'Lifetime'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{user.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      No users found
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="font-medium">{user.full_name}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          {user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.family_name}</TableCell>
+                      <TableCell>{getTierBadge(user.subscription_tier)}</TableCell>
+                      <TableCell>{getStatusBadge(user.subscription_status)}</TableCell>
+                      <TableCell>
+                        {user.current_period_end ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            {format(new Date(user.current_period_end), 'dd MMM yyyy')}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{user.role}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditUser(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
-          )}
+          </div>
         </CardContent>
       </Card>
 
+      {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User Subscription</DialogTitle>
             <DialogDescription>
-              Update subscription untuk {editingUser?.full_name}
+              Update subscription tier and status for {editingUser?.full_name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Subscription Tier</Label>
@@ -320,10 +423,10 @@ const UsersManagement = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Expires At (kosongkan untuk lifetime)</Label>
+              <Label>Expires At</Label>
               <Input
-                type="datetime-local"
-                value={newExpiresAt}
+                type="date"
+                value={newExpiresAt ? new Date(newExpiresAt).toISOString().split('T')[0] : ''}
                 onChange={(e) => setNewExpiresAt(e.target.value)}
               />
             </div>
@@ -331,10 +434,10 @@ const UsersManagement = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Batal
+              Cancel
             </Button>
-            <Button onClick={handleSaveEdit} disabled={updateSubscriptionMutation.isPending}>
-              {updateSubscriptionMutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            <Button onClick={handleSaveChanges} disabled={updateSubscriptionMutation.isPending}>
+              {updateSubscriptionMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>
