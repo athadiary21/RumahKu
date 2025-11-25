@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -47,6 +48,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <PWAInstallPrompt />
           <BrowserRouter>
             <PageTracker />
             <Routes>
