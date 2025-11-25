@@ -27,6 +27,17 @@ serve(async (req) => {
       throw new Error('Unauthorized')
     }
 
+    // Get user's family
+    const { data: familyMember } = await supabaseClient
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!familyMember) {
+      throw new Error('User not associated with a family')
+    }
+
     const { tier, billing_period, promo_code } = await req.json()
 
     // Get tier details
@@ -51,7 +62,7 @@ serve(async (req) => {
         .from('promo_codes')
         .select('*')
         .eq('code', promo_code)
-        .eq('is_active', true)
+        .eq('active', true)
         .single()
 
       if (promoData && !promoError) {
@@ -79,6 +90,7 @@ serve(async (req) => {
       .from('payment_transactions')
       .insert({
         user_id: user.id,
+        family_id: familyMember.family_id,
         amount: finalAmount,
         original_amount: amount,
         discount_amount: discount,

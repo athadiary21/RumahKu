@@ -155,8 +155,27 @@ export async function validatePromoCode(code: string) {
 }
 
 export async function getPaymentTransactions(limit = 100) {
-  // Payment transactions table not yet implemented
-  return [];
+  const { data, error } = await supabase
+    .from('payment_transactions')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getPaymentStats(days = 30) {
+  const { data, error } = await supabase.rpc('get_payment_stats', { days_back: days });
+  if (error) throw error;
+  return (data as any)[0] || {
+    total_transactions: 0,
+    completed_transactions: 0,
+    pending_transactions: 0,
+    failed_transactions: 0,
+    total_revenue: 0,
+    average_transaction: 0,
+  };
 }
 
 export async function getTrafficAnalytics(days = 30) {

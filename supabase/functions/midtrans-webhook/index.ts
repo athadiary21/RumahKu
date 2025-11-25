@@ -105,8 +105,8 @@ serve(async (req) => {
               tier: transaction.tier,
               status: 'active',
               billing_period: transaction.billing_period,
-              current_period_start: new Date().toISOString(),
               current_period_end: expiryDate.toISOString(),
+              updated_at: new Date().toISOString(),
             })
             .eq('id', existingSub.id)
         } else {
@@ -117,7 +117,7 @@ serve(async (req) => {
               tier: transaction.tier,
               status: 'active',
               billing_period: transaction.billing_period,
-              current_period_start: new Date().toISOString(),
+              started_at: new Date().toISOString(),
               current_period_end: expiryDate.toISOString(),
             })
         }
@@ -127,11 +127,12 @@ serve(async (req) => {
           .from('subscription_history')
           .insert({
             family_id: familyMember.family_id,
-            action: 'upgraded',
-            old_tier: 'free',
-            new_tier: transaction.tier,
-            changed_by: transaction.user_id,
-            payment_transaction_id: transaction.id,
+            tier: transaction.tier,
+            status: 'active',
+            started_at: new Date().toISOString(),
+            billing_period: transaction.billing_period,
+            amount_paid: transaction.amount,
+            payment_method: transaction.payment_method,
           })
 
         // Update promo code usage
@@ -140,32 +141,10 @@ serve(async (req) => {
             promo_id: transaction.promo_code_id
           })
         }
-
-        // Queue success email
-        await supabaseClient
-          .from('email_queue')
-          .insert({
-            recipient_email: transaction.user_id,
-            template: 'payment_success',
-            data: {
-              tier: transaction.tier,
-              amount: transaction.amount,
-              billing_period: transaction.billing_period,
-            },
-          })
       }
     } else if (status === 'failed') {
-      // Queue failure email
-      await supabaseClient
-        .from('email_queue')
-        .insert({
-          recipient_email: transaction.user_id,
-          template: 'payment_failed',
-          data: {
-            tier: transaction.tier,
-            amount: transaction.amount,
-          },
-        })
+      // Payment failed - no action needed
+      console.log('Payment failed for transaction:', orderId)
     }
 
     return new Response(
