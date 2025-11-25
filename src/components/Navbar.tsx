@@ -30,6 +30,12 @@ const Navbar = () => {
             <a href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
               {t("nav.pricing")}
             </a>
+            <button 
+              onClick={() => navigate('/install')} 
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              {t("nav.install")}
+            </button>
           </div>
           
           <div className="flex items-center gap-3">

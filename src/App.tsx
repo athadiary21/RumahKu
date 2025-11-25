@@ -12,6 +12,7 @@ import { usePageTracking } from "@/hooks/usePageTracking";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Install from "./pages/Install";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import CalendarPage from "./pages/dashboard/CalendarPage";
 import KitchenPage from "./pages/dashboard/KitchenPage";
@@ -54,6 +55,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/install" element={<Install />} />
               <Route 
                 path="/dashboard" 
                 element={

@@ -81,6 +81,14 @@ const PWAInstallPrompt = () => {
               Nanti Saja
             </Button>
           </div>
+          <div className="text-center">
+            <a 
+              href="/install" 
+              className="text-xs text-primary hover:underline"
+            >
+              Lihat Panduan Install
+            </a>
+          </div>
         </CardContent>
       </Card>
     </div>
