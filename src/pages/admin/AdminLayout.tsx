@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Settings, FileText, MessageSquare, HelpCircle, DollarSign, Home, Users, CreditCard, Tag } from 'lucide-react';
+import { Settings, FileText, MessageSquare, HelpCircle, DollarSign, Home, Users, CreditCard, Tag, Activity, BarChart } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -48,13 +48,15 @@ const AdminLayout = () => {
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/admin' },
+    { icon: Users, label: 'Users', path: '/admin/users' },
+    { icon: Activity, label: 'Activity Logs', path: '/admin/activity-logs' },
+    { icon: BarChart, label: 'Traffic Logs', path: '/admin/traffic-logs' },
+    { icon: CreditCard, label: 'Subscriptions', path: '/admin/subscriptions' },
+    { icon: Tag, label: 'Promo Codes', path: '/admin/promo-codes' },
     { icon: FileText, label: 'Website Content', path: '/admin/content' },
     { icon: MessageSquare, label: 'Testimonials', path: '/admin/testimonials' },
     { icon: HelpCircle, label: 'FAQs', path: '/admin/faqs' },
     { icon: DollarSign, label: 'Pricing', path: '/admin/pricing' },
-    { icon: Users, label: 'Users', path: '/admin/users' },
-    { icon: CreditCard, label: 'Subscriptions', path: '/admin/subscriptions' },
-    { icon: Tag, label: 'Promo Codes', path: '/admin/promo-codes' },
   ];
 
   return (
