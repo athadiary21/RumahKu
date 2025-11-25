@@ -151,7 +151,7 @@ export const FinancialCharts = ({ transactions, budgetCategories }: FinancialCha
       {/* Income vs Expense Trend */}
       <Card>
         <CardHeader>
-          <CardTitle>Tren Pemasukan vs Pengeluaran</CardTitle>
+          <CardTitle>Pemasukan vs Pengeluaran</CardTitle>
           <CardDescription>6 bulan terakhir</CardDescription>
         </CardHeader>
         <CardContent>
