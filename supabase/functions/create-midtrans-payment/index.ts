@@ -114,9 +114,16 @@ serve(async (req) => {
       .single()
 
     // Create Midtrans Snap transaction
-    const midtransServerKey = Deno.env.get('MIDTRANS_SERVER_KEY')
-    const midtransClientKey = Deno.env.get('MIDTRANS_CLIENT_KEY')
+    const midtransServerKey = Deno.env.get('MIDTRANS_SERVER_KEY')?.trim()
+    const midtransClientKey = Deno.env.get('MIDTRANS_CLIENT_KEY')?.trim()
     const isProduction = Deno.env.get('MIDTRANS_IS_PRODUCTION') === 'true'
+
+    if (!midtransServerKey || !midtransClientKey) {
+      throw new Error('Midtrans credentials not configured. Please check MIDTRANS_SERVER_KEY and MIDTRANS_CLIENT_KEY secrets.')
+    }
+
+    console.log('Using Midtrans environment:', isProduction ? 'Production' : 'Sandbox')
+    console.log('Server key starts with:', midtransServerKey.substring(0, 10))
 
     const snapUrl = isProduction
       ? 'https://app.midtrans.com/snap/v1/transactions'
@@ -159,6 +166,9 @@ serve(async (req) => {
 
     if (!snapResponse.ok) {
       const errorText = await snapResponse.text()
+      console.error('Midtrans API Error Response:', errorText)
+      console.error('Request to URL:', snapUrl)
+      console.error('Using environment:', isProduction ? 'Production' : 'Sandbox')
       throw new Error(`Midtrans API error: ${errorText}`)
     }
 
