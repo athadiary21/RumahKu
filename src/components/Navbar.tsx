@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -13,9 +12,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
-              <Home className="h-5 w-5 text-white" />
-            </div>
+            <img 
+              src="https://res.cloudinary.com/dfjvcvbsn/image/upload/v1764055341/Desain_tanpa_judul_q2tjf9.png" 
+              alt="RumahKu Logo" 
+              className="h-10 w-10 object-contain"
+            />
             <span className="text-xl font-bold">RumahKu</span>
           </div>
           
