@@ -18,7 +18,7 @@ interface Testimonial {
   role: string;
   content: string;
   rating: number;
-  is_active: boolean;
+  published: boolean;
   created_at: string;
 }
 
@@ -61,7 +61,7 @@ const TestimonialsAdmin = () => {
       } else {
         const { error } = await supabase
           .from('testimonials_admin')
-          .insert({ ...formData, is_active: true });
+          .insert({ ...formData, published: true });
         if (error) throw error;
       }
     },
@@ -109,10 +109,10 @@ const TestimonialsAdmin = () => {
 
   // Toggle active mutation
   const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
       const { error } = await supabase
         .from('testimonials_admin')
-        .update({ is_active: !is_active })
+        .update({ published: !published })
         .eq('id', id);
       if (error) throw error;
     },
@@ -216,14 +216,14 @@ const TestimonialsAdmin = () => {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={testimonial.is_active ? 'default' : 'secondary'}
+                        variant={testimonial.published ? 'default' : 'secondary'}
                         className="cursor-pointer"
                         onClick={() => toggleActiveMutation.mutate({
                           id: testimonial.id,
-                          is_active: testimonial.is_active
+                          published: testimonial.published
                         })}
                       >
-                        {testimonial.is_active ? 'Active' : 'Inactive'}
+                        {testimonial.published ? 'Published' : 'Draft'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

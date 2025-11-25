@@ -18,6 +18,12 @@ import {
   Legend,
 } from 'recharts';
 
+const COLORS = {
+  Free: '#94a3b8',
+  Family: '#3b82f6',
+  Premium: '#f59e0b',
+};
+
 const AdminDashboard = () => {
   // Fetch dashboard statistics
   const { data: dashboardData, isLoading } = useQuery({

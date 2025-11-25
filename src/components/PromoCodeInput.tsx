@@ -16,7 +16,6 @@ interface PromoCodeInputProps {
 
 interface PromoCodeValidation {
   valid: boolean;
-  promo_code_id: string;
   discount_type: string;
   discount_value: number;
   message: string;
@@ -61,9 +60,7 @@ const PromoCodeInput = ({
 
     try {
       const { data, error } = await supabase.rpc('validate_promo_code', {
-        p_code: promoCode.trim().toUpperCase(),
-        p_tier: tier,
-        p_family_id: familyData.family_id,
+        promo_code: promoCode.trim().toUpperCase(),
       });
 
       if (error) {
@@ -77,7 +74,6 @@ const PromoCodeInput = ({
       console.error('Promo code validation error:', error);
       setValidationResult({
         valid: false,
-        promo_code_id: '',
         discount_type: '',
         discount_value: 0,
         message: 'Terjadi kesalahan saat validasi kode promo',

@@ -27,6 +27,8 @@ interface SubscriptionData {
   is_trial: boolean;
   trial_ends_at: string | null;
   auto_renew: boolean;
+  current_period_end: string | null;
+  billing_period: string | null;
 }
 
 interface SubscriptionContextType {

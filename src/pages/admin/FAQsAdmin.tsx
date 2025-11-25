@@ -16,8 +16,9 @@ interface FAQ {
   id: string;
   question: string;
   answer: string;
-  order_index: number;
-  is_active: boolean;
+  category: string | null;
+  display_order: number | null;
+  published: boolean;
   created_at: string;
 }
 
@@ -39,10 +40,10 @@ const FAQsAdmin = () => {
       const { data, error } = await supabase
         .from('faqs_admin')
         .select('*')
-        .order('order_index', { ascending: true });
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as FAQ[];
+      return data;
     },
   });
 
@@ -56,10 +57,10 @@ const FAQsAdmin = () => {
           .eq('id', editingId);
         if (error) throw error;
       } else {
-        const maxOrder = Math.max(...faqs.map(f => f.order_index), 0);
+        const maxOrder = Math.max(...faqs.map(f => f.display_order || 0), 0);
         const { error } = await supabase
           .from('faqs_admin')
-          .insert({ ...formData, order_index: maxOrder + 1, is_active: true });
+          .insert({ ...formData, display_order: maxOrder + 1, published: true });
         if (error) throw error;
       }
     },
@@ -107,10 +108,10 @@ const FAQsAdmin = () => {
 
   // Toggle active mutation
   const toggleActiveMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({ id, published }: { id: string; published: boolean }) => {
       const { error } = await supabase
         .from('faqs_admin')
-        .update({ is_active: !is_active })
+        .update({ published: !published })
         .eq('id', id);
       if (error) throw error;
     },
@@ -128,7 +129,7 @@ const FAQsAdmin = () => {
     mutationFn: async ({ id, newOrder }: { id: string; newOrder: number }) => {
       const { error } = await supabase
         .from('faqs_admin')
-        .update({ order_index: newOrder })
+        .update({ display_order: newOrder })
         .eq('id', id);
       if (error) throw error;
     },
@@ -173,15 +174,15 @@ const FAQsAdmin = () => {
   const handleMoveUp = (faq: FAQ, index: number) => {
     if (index === 0) return;
     const prevFaq = faqs[index - 1];
-    reorderMutation.mutate({ id: faq.id, newOrder: prevFaq.order_index });
-    reorderMutation.mutate({ id: prevFaq.id, newOrder: faq.order_index });
+    reorderMutation.mutate({ id: faq.id, newOrder: prevFaq.display_order || 0 });
+    reorderMutation.mutate({ id: prevFaq.id, newOrder: faq.display_order || 0 });
   };
 
   const handleMoveDown = (faq: FAQ, index: number) => {
     if (index === faqs.length - 1) return;
     const nextFaq = faqs[index + 1];
-    reorderMutation.mutate({ id: faq.id, newOrder: nextFaq.order_index });
-    reorderMutation.mutate({ id: nextFaq.id, newOrder: faq.order_index });
+    reorderMutation.mutate({ id: faq.id, newOrder: nextFaq.display_order || 0 });
+    reorderMutation.mutate({ id: nextFaq.id, newOrder: faq.display_order || 0 });
   };
 
   return (
@@ -253,14 +254,14 @@ const FAQsAdmin = () => {
                     <TableCell className="max-w-md truncate">{faq.answer}</TableCell>
                     <TableCell>
                       <Badge
-                        variant={faq.is_active ? 'default' : 'secondary'}
+                        variant={faq.published ? 'default' : 'secondary'}
                         className="cursor-pointer"
                         onClick={() => toggleActiveMutation.mutate({
                           id: faq.id,
-                          is_active: faq.is_active
+                          published: faq.published
                         })}
                       >
-                        {faq.is_active ? 'Active' : 'Inactive'}
+                        {faq.published ? 'Published' : 'Draft'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

@@ -33,7 +33,7 @@ const VaultPage = () => {
       if (!familyData?.family_id) return [];
 
       const { data, error } = await supabase
-        .from('vault_documents')
+        .from('documents')
         .select('*')
         .eq('family_id', familyData.family_id)
         .order('created_at', { ascending: false });
@@ -72,16 +72,13 @@ const VaultPage = () => {
 
       // Create document record
       const { error: insertError } = await supabase
-        .from('vault_documents')
+        .from('documents')
         .insert({
           family_id: familyData.family_id,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          user_id: (await supabase.auth.getUser()).data.user?.id!,
           name: uploadData.name || selectedFile.name,
           category: uploadData.category,
           file_path: filePath,
-          file_size: selectedFile.size,
-          file_type: selectedFile.type,
-          description: uploadData.description,
         });
 
       if (insertError) throw insertError;
@@ -117,7 +114,7 @@ const VaultPage = () => {
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('vault_documents')
+        .from('documents')
         .delete()
         .eq('id', doc.id);
 
@@ -288,14 +285,13 @@ const VaultPage = () => {
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => {
-                const FileIcon = getFileIcon(doc.file_type);
                 return (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 flex-1">
-                      <FileIcon className="h-8 w-8 text-primary" />
+                      <FileText className="h-8 w-8 text-primary" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium truncate">{doc.name}</h3>
@@ -303,12 +299,7 @@ const VaultPage = () => {
                             {getCategoryLabel(doc.category)}
                           </Badge>
                         </div>
-                        {doc.description && (
-                          <p className="text-sm text-muted-foreground truncate">{doc.description}</p>
-                        )}
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                          <span>{formatFileSize(doc.file_size)}</span>
-                          <span>•</span>
                           <span>{new Date(doc.created_at).toLocaleDateString('id-ID')}</span>
                         </div>
                       </div>
