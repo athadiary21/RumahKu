@@ -79,6 +79,9 @@ const VaultPage = () => {
           name: uploadData.name || selectedFile.name,
           category: uploadData.category,
           file_path: filePath,
+          file_size: selectedFile.size,
+          file_type: selectedFile.type,
+          description: uploadData.description || null,
         });
 
       if (insertError) throw insertError;

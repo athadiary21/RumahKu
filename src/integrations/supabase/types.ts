@@ -193,8 +193,11 @@ export type Database = {
         Row: {
           category: string
           created_at: string | null
+          description: string | null
           family_id: string
           file_path: string
+          file_size: number | null
+          file_type: string | null
           id: string
           name: string
           user_id: string
@@ -202,8 +205,11 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string | null
+          description?: string | null
           family_id: string
           file_path: string
+          file_size?: number | null
+          file_type?: string | null
           id?: string
           name: string
           user_id: string
@@ -211,8 +217,11 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string | null
+          description?: string | null
           family_id?: string
           file_path?: string
+          file_size?: number | null
+          file_type?: string | null
           id?: string
           name?: string
           user_id?: string
