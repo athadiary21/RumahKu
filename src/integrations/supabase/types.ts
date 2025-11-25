@@ -159,6 +159,44 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          category: string
+          created_at: string | null
+          family_id: string
+          file_path: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          family_id: string
+          file_path: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          family_id?: string
+          file_path?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_categories: {
         Row: {
           color: Database["public"]["Enums"]["event_category_color"]
