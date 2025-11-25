@@ -75,7 +75,7 @@ const PaymentDialog = ({ open, onOpenChange, tier, onSuccess }: PaymentDialogPro
         .from('promo_codes')
         .select('*')
         .eq('code', promoCode.toUpperCase())
-        .eq('is_active', true)
+        .eq('active', true)
         .single();
 
       if (error || !data) {

@@ -34,7 +34,7 @@ const UsersManagement = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [editingUser, setEditingUser] = useState<UserWithSubscription | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [newTier, setNewTier] = useState<string>('');
+  const [newTier, setNewTier] = useState<'free' | 'family' | 'premium'>('free');
   const [newStatus, setNewStatus] = useState<string>('');
   const [newExpiresAt, setNewExpiresAt] = useState<string>('');
 
@@ -48,7 +48,7 @@ const UsersManagement = () => {
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ familyId, tier, status, expiresAt }: { 
       familyId: string; 
-      tier: string; 
+      tier: 'free' | 'family' | 'premium'; 
       status: string;
       expiresAt: string;
     }) => {
@@ -74,7 +74,7 @@ const UsersManagement = () => {
 
   const handleEditUser = (user: UserWithSubscription) => {
     setEditingUser(user);
-    setNewTier(user.subscription_tier);
+    setNewTier(user.subscription_tier as 'free' | 'family' | 'premium');
     setNewStatus(user.subscription_status);
     setNewExpiresAt(user.current_period_end || '');
     setEditDialogOpen(true);
@@ -340,7 +340,7 @@ const UsersManagement = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Subscription Tier</Label>
-              <Select value={newTier} onValueChange={setNewTier}>
+              <Select value={newTier} onValueChange={(value) => setNewTier(value as 'free' | 'family' | 'premium')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
