@@ -20,7 +20,7 @@ const Testimonials = () => {
       const { data, error } = await supabase
         .from('testimonials_admin')
         .select('*')
-        .eq('is_active', true)
+        .eq('published', true)
         .order('created_at', { ascending: false })
         .limit(6);
 

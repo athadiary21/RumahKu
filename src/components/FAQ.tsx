@@ -18,8 +18,8 @@ const FAQ = () => {
       const { data, error } = await supabase
         .from('faqs_admin')
         .select('*')
-        .eq('is_active', true)
-        .order('order_index', { ascending: true });
+        .eq('published', true)
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
       return data || [];
