@@ -55,16 +55,16 @@ const Footer = () => {
             <div>
               <p className="text-sm font-semibold mb-3">{t("footer.followUs")}</p>
               <div className="flex gap-3">
-                <a href="#" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
+                <a href="https://web.facebook.com/AthaDiary21?locale=id_ID" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
                   <Facebook className="h-4 w-4" />
                 </a>
-                <a href="#" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
+                <a href="https://www.instagram.com/athadiary21/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="Instagram">
                   <Instagram className="h-4 w-4" />
                 </a>
                 <a href="#" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="Twitter">
                   <Twitter className="h-4 w-4" />
                 </a>
-                <a href="#" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/in/atha-rasyid-b1b5a0390/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-white transition-colors" aria-label="LinkedIn">
                   <Linkedin className="h-4 w-4" />
                 </a>
               </div>

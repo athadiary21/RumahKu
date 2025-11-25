@@ -172,8 +172,8 @@ const translations = {
     "footer.email": "Email Anda",
     "footer.subscribe": "Berlangganan",
     "footer.followUs": "Ikuti Kami",
-    "footer.contactEmail": "support@rumahku.app",
-    "footer.contactWA": "+62 812-3456-7890",
+    "footer.contactEmail": "athadiary21@gmail.com",
+    "footer.contactWA": "+62 822-4159-0417",
   },
   en: {
     // Navbar
@@ -338,8 +338,8 @@ const translations = {
     "footer.email": "Your email",
     "footer.subscribe": "Subscribe",
     "footer.followUs": "Follow Us",
-    "footer.contactEmail": "support@rumahku.app",
-    "footer.contactWA": "+62 812-3456-7890",
+    "footer.contactEmail": "athadiary21@gmail.com",
+    "footer.contactWA": "+62 822-4159-0417",
   },
 };
 
