@@ -544,6 +544,48 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          discount_type: string
+          discount_value: number
+          id: string
+          max_uses: number | null
+          updated_at: string | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          max_uses?: number | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          max_uses?: number | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       recipes: {
         Row: {
           cook_time: number | null
@@ -676,6 +718,53 @@ export type Database = {
           },
         ]
       }
+      subscription_history: {
+        Row: {
+          amount_paid: number | null
+          billing_period: string | null
+          created_at: string | null
+          ended_at: string | null
+          family_id: string
+          id: string
+          payment_method: string | null
+          started_at: string
+          status: string
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Insert: {
+          amount_paid?: number | null
+          billing_period?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          family_id: string
+          id?: string
+          payment_method?: string | null
+          started_at: string
+          status: string
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Update: {
+          amount_paid?: number | null
+          billing_period?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          family_id?: string
+          id?: string
+          payment_method?: string | null
+          started_at?: string
+          status?: string
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_tiers: {
         Row: {
           created_at: string
@@ -717,33 +806,48 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          auto_renew: boolean | null
+          billing_period: string | null
           created_at: string
+          current_period_end: string | null
           expires_at: string | null
           family_id: string
           id: string
+          is_trial: boolean | null
           started_at: string
           status: string
           tier: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
+          auto_renew?: boolean | null
+          billing_period?: string | null
           created_at?: string
+          current_period_end?: string | null
           expires_at?: string | null
           family_id: string
           id?: string
+          is_trial?: boolean | null
           started_at?: string
           status?: string
           tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
+          auto_renew?: boolean | null
+          billing_period?: string | null
           created_at?: string
+          current_period_end?: string | null
           expires_at?: string | null
           family_id?: string
           id?: string
+          is_trial?: boolean | null
           started_at?: string
           status?: string
           tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -971,6 +1075,15 @@ export type Database = {
       is_family_member: {
         Args: { _family_id: string; _user_id: string }
         Returns: boolean
+      }
+      validate_promo_code: {
+        Args: { promo_code: string }
+        Returns: {
+          discount_type: string
+          discount_value: number
+          message: string
+          valid: boolean
+        }[]
       }
     }
     Enums: {
