@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { usePageTracking } from "@/hooks/usePageTracking";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -30,6 +31,11 @@ import ActivityLogs from "./pages/admin/ActivityLogs";
 import TrafficLogs from "./pages/admin/TrafficLogs";
 import NotFound from "./pages/NotFound";
 
+function PageTracker() {
+  usePageTracking();
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -41,6 +47,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PageTracker />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
