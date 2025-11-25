@@ -108,13 +108,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-full max-w-[250px] mx-auto mb-2">
-            <img 
-              src="https://res.cloudinary.com/dfjvcvbsn/image/upload/v1764055341/Desain_tanpa_judul_q2tjf9.png" 
-              alt="RumahKu Logo" 
-              className="w-full h-auto"
-            />
-          </div>
+          <CardTitle className="text-3xl font-bold">RumahKu</CardTitle>
           <CardDescription>Sistem Operasi Keluarga Indonesia</CardDescription>
         </CardHeader>
         <CardContent>

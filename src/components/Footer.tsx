@@ -1,4 +1,4 @@
-import { Mail, Phone, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { Home, Mail, Phone, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,12 +33,11 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
           <div className="space-y-4 md:col-span-2 lg:col-span-1">
-            <div className="w-full max-w-[150px]">
-              <img 
-                src="https://res.cloudinary.com/dfjvcvbsn/image/upload/v1764055341/Desain_tanpa_judul_q2tjf9.png" 
-                alt="RumahKu Logo" 
-                className="w-full h-auto"
-              />
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
+                <Home className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-xl font-bold">RumahKu</span>
             </div>
             <p className="text-sm text-muted-foreground">
               {t("footer.description")}
