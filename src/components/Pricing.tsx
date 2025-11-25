@@ -67,58 +67,58 @@ const Pricing = () => {
   ];
 
   return (
-    <section className="py-20 md:py-32 bg-muted/30">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-8">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
             {t("pricing.title")}
           </h2>
-          <p className="text-lg text-muted-foreground mb-4">
+          <p className="text-base sm:text-lg text-muted-foreground mb-3 sm:mb-4">
             {t("pricing.subtitle")}
           </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-accent/10 text-accent text-xs sm:text-sm font-medium">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
             </svg>
             {t("pricing.annualDiscount")}
           </div>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
             <Card 
               key={index}
               className={`relative ${
                 plan.highlighted 
-                  ? "border-primary shadow-xl scale-105 md:scale-110" 
+                  ? "border-primary shadow-xl sm:scale-105 md:scale-110" 
                   : ""
               }`}
             >
               {plan.highlighted && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold tracking-wider rounded-full shadow-lg">
+                <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 px-3 py-1 sm:px-4 sm:py-1 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold tracking-wider rounded-full shadow-lg">
                   {t("pricing.mostPopular")}
                 </div>
               )}
               
               <CardHeader>
-                <CardTitle className="text-2xl">{t(plan.nameKey)}</CardTitle>
-                <CardDescription>{t(plan.descKey)}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold">
+                <CardTitle className="text-xl sm:text-2xl">{t(plan.nameKey)}</CardTitle>
+                <CardDescription className="text-sm">{t(plan.descKey)}</CardDescription>
+                <div className="mt-3 sm:mt-4">
+                  <span className="text-3xl sm:text-4xl font-bold">
                     {typeof plan.price === "number" ? formatPrice(plan.price) : plan.price}
                   </span>
                   {typeof plan.price !== "string" || plan.price !== "Free" ? (
-                    <span className="text-muted-foreground">{t("pricing.perMonth")}</span>
+                    <span className="text-sm text-muted-foreground">{t("pricing.perMonth")}</span>
                   ) : null}
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <ul className="space-y-2 sm:space-y-3">
                   {plan.featureKeys.map((featureKey, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-sm">{t(featureKey)}</span>
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm">{t(featureKey)}</span>
                     </li>
                   ))}
                 </ul>

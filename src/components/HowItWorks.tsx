@@ -23,31 +23,31 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-32">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
             {t("howItWorks.title")}
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             {t("howItWorks.subtitle")}
           </p>
         </div>
         
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 relative">
             {steps.map((item, index) => (
               <div key={index} className="relative">
-                <div className="flex flex-col items-center text-center space-y-4">
+                <div className="flex flex-col items-center text-center space-y-3 sm:space-y-4">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent opacity-20 blur-xl rounded-full"></div>
-                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xl sm:text-2xl font-bold text-white shadow-lg">
                       {item.step}
                     </div>
                   </div>
                   
-                  <h3 className="text-xl font-semibold">{t(item.titleKey)}</h3>
-                  <p className="text-muted-foreground">{t(item.descKey)}</p>
+                  <h3 className="text-lg sm:text-xl font-semibold">{t(item.titleKey)}</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">{t(item.descKey)}</p>
                 </div>
                 
                 {index < steps.length - 1 && (
