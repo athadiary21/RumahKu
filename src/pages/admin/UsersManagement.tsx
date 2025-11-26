@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Crown, Search, Edit, Shield, Zap, Calendar, Mail, User, Activity } from 'lucide-react';
+import { Users, Crown, Search, Edit, Shield, Zap, Calendar, Mail, User, Activity, Download, CheckSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UserWithSubscription {
@@ -37,6 +38,13 @@ const UsersManagement = () => {
   const [newTier, setNewTier] = useState<'free' | 'family' | 'premium'>('free');
   const [newStatus, setNewStatus] = useState<string>('');
   const [newExpiresAt, setNewExpiresAt] = useState<string>('');
+  
+  // Bulk actions states
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkTier, setBulkTier] = useState<'free' | 'family' | 'premium'>('free');
+  const [bulkStatus, setBulkStatus] = useState<string>('active');
+  const [bulkExpiresAt, setBulkExpiresAt] = useState<string>('');
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -72,6 +80,38 @@ const UsersManagement = () => {
     },
   });
 
+  // Bulk update mutation
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ userIds, tier, status, expiresAt }: {
+      userIds: string[];
+      tier: 'free' | 'family' | 'premium';
+      status: string;
+      expiresAt: string;
+    }) => {
+      const selectedUsersList = users.filter(u => userIds.includes(u.id));
+      
+      for (const user of selectedUsersList) {
+        await updateUserSubscription(user.family_id, tier, status, expiresAt);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast({
+        title: 'Success',
+        description: `Updated ${selectedUsers.size} users successfully`,
+      });
+      setBulkDialogOpen(false);
+      setSelectedUsers(new Set());
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleEditUser = (user: UserWithSubscription) => {
     setEditingUser(user);
     setNewTier(user.subscription_tier as 'free' | 'family' | 'premium');
@@ -93,6 +133,83 @@ const UsersManagement = () => {
       tier: newTier,
       status: newStatus,
       expiresAt: expiresAtTimestamp,
+    });
+  };
+
+  // Bulk actions handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
+    } else {
+      setSelectedUsers(new Set());
+    }
+  };
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (checked) {
+      newSelected.add(userId);
+    } else {
+      newSelected.delete(userId);
+    }
+    setSelectedUsers(newSelected);
+  };
+
+  const handleBulkUpdate = () => {
+    if (selectedUsers.size === 0) {
+      toast({
+        title: 'No users selected',
+        description: 'Please select at least one user to update.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Convert date string to ISO timestamp
+    const expiresAtTimestamp = bulkExpiresAt 
+      ? new Date(bulkExpiresAt).toISOString() 
+      : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
+    bulkUpdateMutation.mutate({
+      userIds: Array.from(selectedUsers),
+      tier: bulkTier,
+      status: bulkStatus,
+      expiresAt: expiresAtTimestamp,
+    });
+  };
+
+  // Export to CSV function
+  const handleExportCSV = () => {
+    const csvData = filteredUsers.map(user => ({
+      'User': user.full_name,
+      'Email': user.email,
+      'Family': user.family_name,
+      'Tier': user.subscription_tier,
+      'Status': user.subscription_status,
+      'Expires': user.current_period_end ? format(new Date(user.current_period_end), 'yyyy-MM-dd') : '-',
+      'Role': user.role,
+      'Created': format(new Date(user.created_at), 'yyyy-MM-dd'),
+    }));
+
+    const headers = Object.keys(csvData[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => headers.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: 'Export successful',
+      description: `Exported ${csvData.length} users to CSV`,
     });
   };
 
@@ -149,14 +266,20 @@ const UsersManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          User Management
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Manage users and their subscription status
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Users className="h-8 w-8" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage users and their subscription status
+          </p>
+        </div>
+        <Button onClick={handleExportCSV} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -264,6 +387,12 @@ const UsersManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Family</TableHead>
@@ -277,13 +406,19 @@ const UsersManagement = () => {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredUsers.map((user) => (
                     <TableRow key={user.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedUsers.has(user.id)}
+                          onCheckedChange={(checked) => handleSelectUser(user.id, checked as boolean)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -331,6 +466,87 @@ const UsersManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Actions Card */}
+      {selectedUsers.size > 0 && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckSquare className="h-5 w-5" />
+              Bulk Actions ({selectedUsers.size} selected)
+            </CardTitle>
+            <CardDescription>
+              Update multiple users at once
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setBulkDialogOpen(true)} className="gap-2">
+              <Edit className="h-4 w-4" />
+              Update Selected Users
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bulk Update Dialog */}
+      <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bulk Update Subscriptions</DialogTitle>
+            <DialogDescription>
+              Update {selectedUsers.size} users at once
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Subscription Tier</Label>
+              <Select value={bulkTier} onValueChange={(value) => setBulkTier(value as 'free' | 'family' | 'premium')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="family">Family</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Expires At</Label>
+              <Input
+                type="date"
+                value={bulkExpiresAt}
+                onChange={(e) => setBulkExpiresAt(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBulkUpdate} disabled={bulkUpdateMutation.isPending}>
+              {bulkUpdateMutation.isPending ? 'Updating...' : 'Update All'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
