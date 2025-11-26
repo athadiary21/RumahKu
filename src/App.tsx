@@ -32,6 +32,7 @@ import PromoCodesAdmin from "./pages/admin/PromoCodesAdmin";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import TrafficLogs from "./pages/admin/TrafficLogs";
 import PaymentTransactions from "./pages/admin/PaymentTransactions";
+import UserDetails from "./pages/admin/UserDetails";
 import NotFound from "./pages/NotFound";
 
 function PageTracker() {
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="faqs" element={<FAQsAdmin />} />
                 <Route path="pricing" element={<PricingAdmin />} />
                 <Route path="users" element={<UsersManagement />} />
+                <Route path="users/:userId" element={<UserDetails />} />
                 <Route path="subscriptions" element={<SubscriptionsManagement />} />
                 <Route path="promo-codes" element={<PromoCodesAdmin />} />
                 <Route path="activity-logs" element={<ActivityLogs />} />
