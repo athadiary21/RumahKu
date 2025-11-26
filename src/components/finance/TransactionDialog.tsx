@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '@/hooks/useFamily';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TransactionDialogProps {
   transaction?: any;
@@ -27,6 +28,7 @@ export const TransactionDialog = ({ transaction, trigger }: TransactionDialogPro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: familyData } = useFamily();
+  const { user } = useAuth();
 
   const { data: accounts } = useQuery({
     queryKey: ['accounts', familyData?.family_id],
@@ -115,6 +117,15 @@ export const TransactionDialog = ({ transaction, trigger }: TransactionDialogPro
       return;
     }
 
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'User tidak terautentikasi',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     mutation.mutate({
       type,
       amount: parseFloat(amount),
@@ -124,6 +135,7 @@ export const TransactionDialog = ({ transaction, trigger }: TransactionDialogPro
       budget_category_id: categoryId === 'none' ? null : categoryId || null,
       notes: notes || null,
       family_id: familyData.family_id,
+      created_by: user.id,
     });
   };
 
