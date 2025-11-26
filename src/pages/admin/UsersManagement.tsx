@@ -120,7 +120,7 @@ const UsersManagement = () => {
     setEditDialogOpen(true);
   };
 
-   const handleSaveEdit = () => {
+  const handleSaveEdit = () => {
     if (!editingUser) return;
 
     // Convert date string to ISO timestamp
