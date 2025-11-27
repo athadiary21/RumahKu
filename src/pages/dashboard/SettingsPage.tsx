@@ -144,10 +144,27 @@ const SettingsPage = () => {
                 <p className="text-sm font-medium mb-2">Email</p>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
-              <Button onClick={handleUpdateProfile}>Update Profil</Button>
+              <Button onClick={handleOpenProfile}>Update Profil</Button>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Profile Dialog */}
+        <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Profil</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Label>Nama Lengkap</Label>
+              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setProfileOpen(false)}>Batal</Button>
+              <Button onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile ? 'Menyimpan...' : 'Simpan'}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <TabsContent value="notifications" className="space-y-4">
           <Card>
@@ -155,8 +172,26 @@ const SettingsPage = () => {
               <CardTitle>Preferensi Notifikasi</CardTitle>
               <CardDescription>Atur notifikasi yang ingin Anda terima</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Pengaturan notifikasi akan segera tersedia</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Email Notifikasi</p>
+                  <p className="text-sm text-muted-foreground">Terima notifikasi aktivitas akun melalui email</p>
+                </div>
+                <Switch checked={notifEmail} onCheckedChange={(val: boolean) => setNotifEmail(val)} />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Promo & Penawaran</p>
+                  <p className="text-sm text-muted-foreground">Terima email promo dan penawaran</p>
+                </div>
+                <Switch checked={notifPromo} onCheckedChange={(val: boolean) => setNotifPromo(val)} />
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSaveNotifications}>Simpan Preferensi</Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -168,10 +203,27 @@ const SettingsPage = () => {
               <CardDescription>Kelola keamanan akun Anda</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" onClick={handleChangePassword}>Ganti Password</Button>
+              <Button variant="outline" onClick={handleOpenChangePassword}>Ganti Password</Button>
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Change password dialog */}
+        <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ganti Password</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Label>Password Baru</Label>
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPasswordOpen(false)}>Batal</Button>
+              <Button onClick={handleChangePassword}>Ubah Password</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <TabsContent value="subscription" className="space-y-4">
           <SubscriptionSettings />
