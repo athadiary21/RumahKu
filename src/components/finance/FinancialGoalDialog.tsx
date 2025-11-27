@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '@/hooks/useFamily';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FinancialGoalDialogProps {
   goal?: any;
@@ -24,6 +25,7 @@ export const FinancialGoalDialog = ({ goal, trigger }: FinancialGoalDialogProps)
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: familyData } = useFamily();
+  const { user } = useAuth();
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
@@ -80,15 +82,40 @@ export const FinancialGoalDialog = ({ goal, trigger }: FinancialGoalDialogProps)
       return;
     }
 
-    mutation.mutate({
+    const parsedTarget = parseFloat(targetAmount as any);
+    const parsedCurrent = parseFloat(currentAmount as any) || 0;
+
+    if (isNaN(parsedTarget)) {
+      toast({
+        title: 'Error',
+        description: 'Target jumlah harus berupa angka yang valid',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'User belum terautentikasi',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const payload: any = {
       name,
-      target_amount: parseFloat(targetAmount),
-      current_amount: parseFloat(currentAmount),
+      target_amount: parsedTarget,
+      current_amount: parsedCurrent,
       deadline: deadline || null,
       icon: icon || null,
       color: color || null,
       family_id: familyData.family_id,
-    });
+    };
+
+    if (!goal) payload.created_by = user.id;
+
+    mutation.mutate(payload);
   };
 
   return (
@@ -171,8 +198,8 @@ export const FinancialGoalDialog = ({ goal, trigger }: FinancialGoalDialogProps)
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            <Button type="submit" disabled={mutation.isLoading}>
+              {mutation.isLoading ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </div>
         </form>
