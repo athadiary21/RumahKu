@@ -1,28 +1,105 @@
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Settings, User, Bell, Shield, CreditCard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import SubscriptionSettings from '@/components/SubscriptionSettings';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const SettingsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  const handleUpdateProfile = () => {
-    toast({
-      title: 'Coming Soon',
-      description: 'Fitur update profil akan segera tersedia',
-    });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // local state for dialogs and forms
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [fullName, setFullName] = useState<string>(user?.user_metadata?.full_name || '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [notifEmail, setNotifEmail] = useState<boolean>(!!(user?.user_metadata?.notifications?.email));
+  const [notifPromo, setNotifPromo] = useState<boolean>(!!(user?.user_metadata?.notifications?.promo));
+
+  const handleOpenProfile = () => {
+    setFullName(user?.user_metadata?.full_name || '');
+    setProfileOpen(true);
   };
-  
-  const handleChangePassword = () => {
-    toast({
-      title: 'Coming Soon',
-      description: 'Fitur ganti password akan segera tersedia',
-    });
+
+  const handleSaveProfile = async () => {
+    try {
+      setSavingProfile(true);
+      const { error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+      if (error) throw error;
+      toast({ title: 'Berhasil', description: 'Profil berhasil diperbarui' });
+      setProfileOpen(false);
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: 'Gagal', description: err.message || 'Terjadi kesalahan' });
+    } finally {
+      setSavingProfile(false);
+    }
   };
+
+  const handleOpenChangePassword = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setPasswordOpen(true);
+  };
+
+  const handleChangePassword = async () => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast({ title: 'Berhasil', description: 'Password berhasil diubah' });
+      setPasswordOpen(false);
+    } catch (err: any) {
+      toast({ title: 'Gagal', description: err.message || 'Terjadi kesalahan' });
+    }
+  };
+
+  // Notification preferences stored on user metadata as `notifications`
+  const handleSaveNotifications = async () => {
+    try {
+      const notifications = { email: notifEmail, promo: notifPromo };
+      const { error } = await supabase.auth.updateUser({ data: { notifications } });
+      if (error) throw error;
+      toast({ title: 'Berhasil', description: 'Preferensi notifikasi disimpan' });
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: 'Gagal', description: err.message || 'Terjadi kesalahan' });
+    }
+  };
+
+  // Read query params to set active tab and show payment results
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    const payment = params.get('payment');
+    if (tab) {
+      const trigger = Array.from(document.querySelectorAll('[data-value]')).find((el) => el.getAttribute('data-value') === tab) as HTMLElement | undefined;
+      if (trigger) trigger.click();
+    }
+    if (payment) {
+      if (payment === 'success') {
+        toast({ title: 'Pembayaran Berhasil', description: 'Langganan berhasil diproses' });
+      } else if (payment === 'failed' || payment === 'error') {
+        toast({ title: 'Pembayaran Gagal', description: 'Terjadi masalah saat pembayaran' });
+      } else if (payment === 'pending') {
+        toast({ title: 'Pembayaran Pending', description: 'Pembayaran sedang diproses' });
+      }
+      params.delete('payment');
+      navigate({ search: params.toString() }, { replace: true });
+    }
+  }, [location.search]);
 
   return (
     <div className="space-y-6">
