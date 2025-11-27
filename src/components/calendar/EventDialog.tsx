@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '@/hooks/useFamily';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EventDialogProps {
   event?: any;
@@ -26,6 +27,7 @@ export const EventDialog = ({ event, trigger }: EventDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: familyData } = useFamily();
+  const { user } = useAuth();
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
@@ -36,9 +38,15 @@ export const EventDialog = ({ event, trigger }: EventDialogProps) => {
           .eq('id', event.id);
         if (error) throw error;
       } else {
+        const payload = {
+          ...data,
+          // ensure created_by is set to current user id (required by DB)
+          created_by: user?.id || null,
+        };
+
         const { error } = await supabase
           .from('calendar_events')
-          .insert([data]);
+          .insert([payload]);
         if (error) throw error;
       }
     },
@@ -77,6 +85,15 @@ export const EventDialog = ({ event, trigger }: EventDialogProps) => {
       toast({
         title: 'Error',
         description: 'Family ID tidak ditemukan',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        title: 'Error',
+        description: 'User tidak terautentikasi',
         variant: 'destructive',
       });
       return;

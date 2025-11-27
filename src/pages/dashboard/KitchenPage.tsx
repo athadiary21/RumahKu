@@ -390,7 +390,22 @@ const KitchenPage = () => {
           ) : (
             <div className="space-y-3">
               {mealPlans.map((p) => (
-                <Card key={p.id}><CardHeader><div className="flex justify-between"><div><CardTitle className="text-lg">{format(new Date(p.date), 'dd MMM yyyy')} - {p.meal_type}</CardTitle>{p.recipes && <CardDescription>{p.recipes.name}</CardDescription>}</div><div className="flex gap-1"><MealPlanDialog mealPlan={p} trigger={<Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>} /><Button variant="ghost" size="icon" onClick={() => deleteMealPlanMutation.mutate(p.id)}><Trash2 className="h-4 w-4" /></Button></div></div></CardHeader></Card>
+                <Card key={p.id}>
+                  <CardHeader>
+                    <div className="flex justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          {p.date ? `${format(new Date(p.date), 'dd MMM yyyy')} - ${p.meal_type}` : p.meal_type}
+                        </CardTitle>
+                        {p.recipes && <CardDescription>{p.recipes.name}</CardDescription>}
+                      </div>
+                      <div className="flex gap-1">
+                        <MealPlanDialog mealPlan={p} trigger={<Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>} />
+                        <Button variant="ghost" size="icon" onClick={() => deleteMealPlanMutation.mutate(p.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
               ))}
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +18,20 @@ interface MealPlanDialogProps {
 
 export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState(mealPlan?.date || '');
+  const formatToInputDate = (d: any) => {
+    try {
+      if (!d) return '';
+      const dt = new Date(d);
+      if (isNaN(dt.getTime())) return '';
+      return format(dt, 'yyyy-MM-dd');
+    } catch {
+      return '';
+    }
+  };
+
+  const [date, setDate] = useState(mealPlan?.date ? formatToInputDate(mealPlan.date) : format(new Date(), 'yyyy-MM-dd'));
   const [mealType, setMealType] = useState(mealPlan?.meal_type || 'breakfast');
-  const [recipeId, setRecipeId] = useState(mealPlan?.recipe_id || '');
+  const [recipeId, setRecipeId] = useState<string>(mealPlan?.recipe_id ? String(mealPlan.recipe_id) : '');
   const [notes, setNotes] = useState(mealPlan?.notes || '');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -67,7 +79,7 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
     onError: (error) => {
       toast({
         title: 'Error',
-        description: error.message,
+        description: (error as any)?.message || String(error),
         variant: 'destructive',
       });
     },
@@ -75,7 +87,7 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
 
   const resetForm = () => {
     if (!mealPlan) {
-      setDate('');
+      setDate(format(new Date(), 'yyyy-MM-dd'));
       setMealType('breakfast');
       setRecipeId('');
       setNotes('');
@@ -93,10 +105,19 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
       return;
     }
 
+    if (!date) {
+      toast({
+        title: 'Error',
+        description: 'Tanggal harus diisi',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     mutation.mutate({
       date,
       meal_type: mealType,
-      recipe_id: recipeId || null,
+      recipe_id: recipeId ? Number(recipeId) : null,
       notes: notes || null,
       family_id: familyData.family_id,
     });
@@ -145,7 +166,7 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
               <SelectContent>
                 <SelectItem value="">Tanpa Resep</SelectItem>
                 {recipes?.map((recipe) => (
-                  <SelectItem key={recipe.id} value={recipe.id}>
+                  <SelectItem key={recipe.id} value={String(recipe.id)}>
                     {recipe.name}
                   </SelectItem>
                 ))}
@@ -168,8 +189,8 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Batal
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Menyimpan...' : 'Simpan'}
+            <Button type="submit" disabled={mutation.isLoading}>
+              {mutation.isLoading ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </div>
         </form>
