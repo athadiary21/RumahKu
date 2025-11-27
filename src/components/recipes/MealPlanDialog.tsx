@@ -31,7 +31,7 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
 
   const [date, setDate] = useState(mealPlan?.date ? formatToInputDate(mealPlan.date) : format(new Date(), 'yyyy-MM-dd'));
   const [mealType, setMealType] = useState(mealPlan?.meal_type || 'breakfast');
-  const [recipeId, setRecipeId] = useState<string>(mealPlan?.recipe_id ? String(mealPlan.recipe_id) : '');
+  const [recipeId, setRecipeId] = useState(mealPlan?.recipe_id ? String(mealPlan.recipe_id) : '');
   const [notes, setNotes] = useState(mealPlan?.notes || '');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -114,13 +114,42 @@ export const MealPlanDialog = ({ mealPlan, trigger }: MealPlanDialogProps) => {
       return;
     }
 
-    mutation.mutate({
+    // Validasi mealType
+    const allowedMealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+    if (!allowedMealTypes.includes(mealType)) {
+      toast({
+        title: 'Error',
+        description: 'Jenis makanan tidak valid',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validasi recipeId (harus number atau null)
+    let recipeIdValue: number | null = null;
+    if (recipeId) {
+      const parsed = Number(recipeId);
+      if (isNaN(parsed)) {
+        toast({
+          title: 'Error',
+          description: 'Resep tidak valid',
+          variant: 'destructive',
+        });
+        return;
+      }
+      recipeIdValue = parsed;
+    }
+
+    // Siapkan data sesuai skema Supabase
+    const mealPlanData = {
       date,
       meal_type: mealType,
-      recipe_id: recipeId ? Number(recipeId) : null,
-      notes: notes || null,
+      recipe_id: recipeIdValue,
+      notes: notes?.trim() ? notes : null,
       family_id: familyData.family_id,
-    });
+    };
+
+    mutation.mutate(mealPlanData);
   };
 
   return (
