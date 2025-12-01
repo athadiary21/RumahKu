@@ -2,6 +2,11 @@
 
 ![Version](https://img.shields.io/badge/version-1.0-blue.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg) ![Status](https://img.shields.io/badge/status-active-success.svg)
 
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
 **RumahKu** adalah platform manajemen keluarga all-in-one yang dirancang untuk membantu keluarga mengelola keuangan, jadwal makan, penyimpanan dokumen, dan kolaborasi rumah tangga dalam satu antarmuka yang elegan dan terstruktur.
 
 Dibangun dengan teknologi web modern untuk performa cepat dan pengalaman pengguna yang mulus.
