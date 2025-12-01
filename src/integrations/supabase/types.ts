@@ -89,7 +89,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       budget_categories: {
         Row: {
@@ -181,6 +189,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "calendar_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "calendar_events_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
@@ -235,6 +250,13 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
             referencedColumns: ["id"]
           },
         ]
@@ -328,7 +350,15 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "family_groups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       family_members: {
         Row: {
@@ -358,6 +388,13 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
             referencedColumns: ["id"]
           },
         ]
@@ -436,6 +473,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "financial_goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financial_goals_family_id_fkey"
             columns: ["family_id"]
@@ -632,7 +676,15 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promo_code_usage: {
         Row: {
@@ -776,6 +828,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "recipes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "recipes_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
@@ -851,6 +910,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "shopping_lists_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shopping_lists_family_id_fkey"
             columns: ["family_id"]
@@ -1072,7 +1138,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "traffic_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -1133,6 +1207,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
@@ -1160,7 +1241,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       website_content: {
         Row: {
@@ -1196,11 +1285,28 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "website_content_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          admin_since: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_update_subscription: {
@@ -1218,7 +1324,6 @@ export type Database = {
           created_at: string
           current_period_end: string
           email: string
-          expires_at: string
           family_id: string
           family_name: string
           full_name: string
@@ -1226,7 +1331,6 @@ export type Database = {
           role: string
           subscription_status: string
           subscription_tier: string
-          user_id: string
         }[]
       }
       get_dashboard_stats: {
@@ -1289,10 +1393,12 @@ export type Database = {
         Returns: boolean
       }
       increment_promo_usage: { Args: { promo_id: string }; Returns: undefined }
+      is_admin: { Args: never; Returns: boolean }
       is_family_member: {
         Args: { _family_id: string; _user_id: string }
         Returns: boolean
       }
+      make_user_admin: { Args: { user_email: string }; Returns: undefined }
       validate_promo_code: {
         Args: { promo_code: string }
         Returns: {

@@ -24,16 +24,15 @@ interface UserDetail {
 
 interface SubscriptionHistory {
   id: string;
-  changed_by_email: string;
-  changed_by_name: string;
-  old_tier: string;
-  new_tier: string;
-  old_status: string;
-  new_status: string;
-  old_expires_at: string | null;
-  new_expires_at: string | null;
-  notes: string | null;
-  created_at: string;
+  family_id: string;
+  tier: string;
+  status: string;
+  started_at: string;
+  ended_at: string | null;
+  billing_period: string | null;
+  amount_paid: number | null;
+  payment_method: string | null;
+  created_at: string | null;
 }
 
 interface Transaction {
@@ -73,9 +72,11 @@ const UserDetails = () => {
     queryKey: ['subscription-history', user?.family_id],
     queryFn: async () => {
       if (!user?.family_id) return [];
-      const { data, error } = await supabase.rpc('get_subscription_history', {
-        p_family_id: user.family_id,
-      });
+      const { data, error } = await supabase
+        .from('subscription_history')
+        .select('*')
+        .eq('family_id', user.family_id)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data as SubscriptionHistory[];
     },
@@ -334,43 +335,36 @@ const UserDetails = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Changed By</TableHead>
-                    <TableHead>From</TableHead>
-                    <TableHead>To</TableHead>
+                    <TableHead>Tier</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Expires</TableHead>
+                    <TableHead>Started</TableHead>
+                    <TableHead>Ended</TableHead>
+                    <TableHead>Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {history.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="whitespace-nowrap">
-                        {format(new Date(item.created_at), 'dd MMM yyyy HH:mm')}
+                        {format(new Date(item.created_at || item.started_at), 'dd MMM yyyy HH:mm')}
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <p className="text-sm font-medium">{item.changed_by_name || 'System'}</p>
-                          <p className="text-xs text-muted-foreground">{item.changed_by_email}</p>
-                        </div>
+                        <Badge>{item.tier}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{item.old_tier}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge>{item.new_tier}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Badge variant="outline">{item.old_status}</Badge>
-                          <span>→</span>
-                          <Badge>{item.new_status}</Badge>
-                        </div>
+                        <Badge variant={item.status === 'active' ? 'default' : 'secondary'}>{item.status}</Badge>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {item.new_expires_at 
-                          ? format(new Date(item.new_expires_at), 'dd MMM yyyy')
-                          : '-'
+                        {format(new Date(item.started_at), 'dd MMM yyyy')}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {item.ended_at 
+                          ? format(new Date(item.ended_at), 'dd MMM yyyy')
+                          : 'Aktif'
                         }
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {item.amount_paid ? `Rp ${item.amount_paid.toLocaleString('id-ID')}` : '-'}
                       </TableCell>
                     </TableRow>
                   ))}

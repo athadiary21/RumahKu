@@ -84,8 +84,8 @@ export const TransactionDialog = ({ transaction, trigger }: TransactionDialogPro
 
         if (accountError) throw accountError;
 
-        const currentBalance = parseFloat(accountData.balance);
-        const amount = parseFloat(data.amount);
+        const currentBalance = Number(accountData.balance);
+        const amount = Number(data.amount);
         const newBalance = data.type === 'income' 
           ? currentBalance + amount 
           : currentBalance - amount;
