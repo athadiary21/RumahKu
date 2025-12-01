@@ -1,118 +1,170 @@
-🏡 RumahKu — Sistem Operasi Keluarga
+# 🏡 RumahKu — Sistem Operasi Keluarga Modern
 
-Elegan • Terstruktur • Siap untuk Kolaborasi
+![Version](https://img.shields.io/badge/version-1.0-blue.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg) ![Status](https://img.shields.io/badge/status-active-success.svg)
 
-Repository: https://github.com/athadiary21/Rumahku
+**RumahKu** adalah platform manajemen keluarga all-in-one yang dirancang untuk membantu keluarga mengelola keuangan, jadwal makan, penyimpanan dokumen, dan kolaborasi rumah tangga dalam satu antarmuka yang elegan dan terstruktur.
 
-✨ Ringkasan Singkat
+Dibangun dengan teknologi web modern untuk performa cepat dan pengalaman pengguna yang mulus.
 
-RumahKu adalah aplikasi web modern yang berfungsi sebagai Sistem Operasi Keluarga — tempat mengelola jadwal, aktivitas, catatan, dan kebutuhan rumah tangga dalam satu platform rapi dan mudah digunakan.
+---
 
-🧩 Tech Stack
+## ✨ Fitur Unggulan
 
-Frontend: Next.js / React
+### 💰 Manajemen Keuangan (Finance)
+* **Budgeting:** Buat dan kelola kategori anggaran bulanan.
+* **Transaksi:** Catat pemasukan dan pengeluaran dengan dukungan multi-wallet/bank.
+* **Laporan:** Visualisasi kondisi keuangan dengan grafik interaktif.
+* **Limitasi Tier:** Batasan jumlah akun dan kategori berdasarkan level langganan.
 
-Backend / Database: Supabase
+### 🍳 Dapur & Makanan (Kitchen)
+* **Resep:** Simpan dan kelola resep masakan favorit keluarga.
+* **Meal Planner:** Rencanakan menu makan mingguan atau bulanan agar lebih teratur.
+* **Daftar Belanja:** Generate daftar belanja otomatis berdasarkan rencana makan.
 
-Auth: Supabase Auth + Google OAuth
+### 🔐 Brankas Digital (Vault)
+* Penyimpanan aman untuk dokumen penting keluarga (KK, Akta, Sertifikat, dll).
+* Terintegrasi langsung dengan Supabase Storage untuk keamanan data.
 
-Styling: TailwindCSS (opsional)
+### 💎 Sistem Berlangganan (Subscription)
+Sistem *tiering* lengkap untuk kebutuhan keluarga yang berbeda:
+* **Free Tier:** Fitur dasar (Max 1 akun bank, 3 kategori budget).
+* **Family Tier (Rp 20.000/bln):** Unlimited akun/kategori, akses penuh fitur Dapur & Vault, kolaborasi multi-user.
+* **Premium Tier (Rp 100.000/bln):** Semua fitur Family + Analytics prioritas, support khusus, dan ekspor data.
 
-📁 Struktur Proyek (perkiraan)
-/public             → aset statis
-/src
-  /components       → komponen UI
-  /pages atau /app  → routing (Next.js)
-  /styles           → stylesheet
+### 🛡️ Admin Dashboard
+Panel kontrol khusus untuk administrator aplikasi:
+* **User Management:** Kelola pengguna, pantau aktivitas, dan ubah tier langganan manual.
+* **Subscription Analytics:** Monitor MRR (Monthly Recurring Revenue), pertumbuhan pelanggan, dan statistik paket.
+* **Content Management:** Kelola FAQ, Testimonial, dan konten website lainnya tanpa coding.
 
+---
 
-Jika ingin dibuat versi struktur asli berdasarkan repo-mu, cukup beri tahu saya.
+## 🛠️ Tech Stack
 
-🛠️ Cara Menjalankan Secara Lokal
-# clone repo
-git clone https://github.com/athadiary21/Rumahku
+Project ini dibangun menggunakan stack modern untuk performa maksimal dan kemudahan pengembangan:
+
+* **Frontend Core:** [React 18](https://react.dev/) + [Vite](https://vitejs.dev/) + [TypeScript](https://www.typescriptlang.org/)
+* **Styling & UI:** [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/)
+* **State Management:** [TanStack Query](https://tanstack.com/query/latest) (React Query)
+* **Form Handling:** React Hook Form + Zod Validation
+* **Routing:** React Router DOM
+* **Backend & Database:** [Supabase](https://supabase.com/) (PostgreSQL, Auth, Storage, Edge Functions)
+* **Icons:** Lucide React
+* **Charts:** Recharts
+
+---
+
+## 🚀 Cara Menjalankan Secara Lokal
+
+Ikuti langkah-langkah ini untuk menjalankan proyek di komputer lokal Anda:
+
+### 1. Persiapan (Prerequisites)
+Pastikan Anda sudah menginstal:
+* Node.js (v18 atau lebih baru)
+* NPM (bawaan Node.js) atau Bun
+
+### 2. Clone Repository
+```bash
+git clone [https://github.com/athadiary21/Rumahku.git](https://github.com/athadiary21/Rumahku.git)
 cd Rumahku
+```
 
-# install dependencies
+### 3. Install Dependencies
+````Bash
 npm install
+# atau jika menggunakan bun
+bun install
+````
 
-# buat file .env.local lalu isi:
-NEXT_PUBLIC_SUPABASE_URL=your_url
+### 4. Konfigurasi Environment Variables
+Duplikat file .env.example menjadi .env dan isi dengan kredensial Supabase Anda:
 
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+```Bash
+cp .env.example .env
+Isi file .env dengan data dari dashboard Supabase project Anda:
+```
 
+### Cuplikan kode
 
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxxx
+```
+VITE_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-GOOGLE_CLIENT_SECRET=yyyy
+# Payment Gateways (Opsional untuk development awal)
 
-# jalankan development
+```
+VITE_MIDTRANS_CLIENT_KEY=your_midtrans_client_key
+VITE_XENDIT_API_KEY=your_xendit_api_key
+```
+
+### 5. Setup Database (Supabase)
+Aplikasi ini membutuhkan struktur tabel tertentu. Jika Anda memiliki Supabase CLI:
+
+```Bash
+supabase link --project-ref your-project-ref
+supabase db push
+Alternatif: Salin script SQL dari folder supabase/migrations/ dan jalankan di SQL Editor dashboard Supabase Anda secara berurutan.
+```
+
+### 6. Jalankan Aplikasi
+```Bash
 npm run dev
+Buka browser dan akses alamat yang muncul (biasanya http://localhost:5173).
+```
 
+# 📂 Struktur Proyek
+```
+/
+├── public/              # Aset statis (favicon, robots.txt, manifest)
+├── src/
+│   ├── components/      # Komponen UI
+│   │   ├── ui/          # Komponen dasar (Button, Input, Dialog, dll)
+│   │   ├── finance/     # Komponen fitur keuangan
+│   │   ├── recipes/     # Komponen fitur resep
+│   │   └── ...
+│   ├── contexts/        # React Context (Auth, Subscription, Language)
+│   ├── hooks/           # Custom React Hooks (useMobile, useToast, dll)
+│   ├── integrations/    # Konfigurasi client Supabase
+│   ├── lib/             # Utility functions (utils.ts)
+│   ├── pages/           # Halaman aplikasi (Routing views)
+│   │   ├── admin/       # Halaman khusus Admin Panel
+│   │   └── dashboard/   # Halaman Dashboard User (Finance, Family, dll)
+│   ├── services/        # Logika bisnis & API calls
+│   └── App.tsx          # Main Entry point & Routing setup
+├── supabase/
+│   ├── functions/       # Edge Functions (Backend logic)
+│   └── migrations/      # Skema Database SQL
+└── ...config files
+```
 
-Akses lokal:
-http://localhost:3000
+# 🔒 Keamanan & Akses
+Authentication: Menggunakan Supabase Auth (Email & Google OAuth).
 
-🔐 Catatan Google OAuth
+Authorization: Menggunakan RLS (Row Level Security) di level database PostgreSQL. Data pengguna terisolasi dan hanya bisa diakses oleh pemiliknya atau anggota keluarga yang sah.
 
-Pastikan redirect URL berikut didaftarkan di Google Cloud Console:
+Role Based Access: Area Admin dilindungi middleware yang memverifikasi role user di tabel user_roles.
 
-Development
-http://localhost:3000/api/auth/callback/google
+# 🤝 Kontribusi
+Kontribusi sangat diterima! Silakan fork repository ini dan buat Pull Request untuk fitur baru atau perbaikan bug.
 
+Fork Project
 
-(Jika suatu saat kamu menambah domain produksi, tinggal ditambahkan ke daftar.)
+Buat Feature Branch (git checkout -b feature/FiturKeren)
 
-🛡️ Checklist Keamanan & Kualitas
+Commit Changes (git commit -m 'Menambahkan FiturKeren')
 
- Audit dependency (npm audit)
+Push ke Branch (git push origin feature/FiturKeren)
 
- Pastikan .env tidak ikut ter-commit
+Buka Pull Request
 
- Gunakan Supabase RLS (Row Level Security)
+# 👤 Kontak Developer
+Athadiary21
 
- Tambahkan validasi input pada form
+Whatsapp: +62 82241590417
 
- Tambahkan schema validation (Zod / Yup)
+GitHub: athadiary21
 
- Tambahkan linting & formatting (ESLint + Prettier)
+Portfolio: https://athadiary.my.id
 
-📌 TODO Utama
-
-Integrasi Google Sign-In sepenuhnya
-
-Membuat dashboard UI
-
-Implementasi modul Aktivitas Keluarga
-
-Koneksi ke database Supabase (Realtime / CRUD)
-
-Menambahkan sistem traffic log / activity log user
-
-Menambahkan dokumentasi API (opsional)
-
-🧯 Troubleshooting
-Login Error: 400 redirect_uri_mismatch
-
-Pastikan URL redirect sudah benar dan terdaftar.
-
-404 pada aset atau gambar
-
-Periksa folder /public
-
-Pastikan nama file case-sensitive
-
-Error SSR atau komponen tidak dirender
-
-Cek console di browser & terminal
-
-Pastikan tidak ada import yang salah path
-
-📦 License
-
-MIT (opsional)
-
-👤 Kontak Developer
-
-Dibuat oleh Atha
-Jika butuh bantuan coding, arsitektur, database, atau UI—tinggal panggil saya 😊
+Dibuat dengan ❤️ untuk keluarga Indonesia.
