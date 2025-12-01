@@ -4,15 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useFamily } from '@/hooks/useFamily';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Utensils, Plus, ShoppingCart, Trash2, Edit, ChefHat, Calendar } from 'lucide-react';
+import { Utensils, Plus, ShoppingCart, Trash2, Edit, ChefHat, Calendar, Search } from 'lucide-react';
 import { RecipeDialog } from '@/components/recipes/RecipeDialog';
 import { MealPlanDialog } from '@/components/recipes/MealPlanDialog';
+import { RecipeTemplateCard } from '@/components/recipes/RecipeTemplateCard';
+import { RecipeTemplatePreview } from '@/components/recipes/RecipeTemplatePreview';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingListDialog } from '@/components/shopping/ShoppingListDialog';
 import { ShoppingItemDialog } from '@/components/shopping/ShoppingItemDialog';
 import { toast } from '@/hooks/use-toast';
+import { recipeTemplates, RECIPE_CATEGORIES, RecipeTemplate } from '@/data/recipeTemplates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +39,9 @@ const KitchenPage = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [deleteListId, setDeleteListId] = useState<string | null>(null);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [previewRecipe, setPreviewRecipe] = useState<RecipeTemplate | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
 
   const { data: recipes = [] } = useQuery({
     queryKey: ['recipes', family?.family_id],
@@ -182,6 +190,56 @@ const KitchenPage = () => {
   const handleEditItem = (item: any) => {
     setEditingItem(item);
     setItemDialogOpen(true);
+  };
+
+  // Add template recipe to user's collection
+  const addTemplateMutation = useMutation({
+    mutationFn: async (template: RecipeTemplate) => {
+      if (!family?.family_id) throw new Error('No family');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase.from('recipes').insert({
+        name: template.name,
+        description: template.description,
+        ingredients: template.ingredients,
+        instructions: template.instructions,
+        prep_time: template.prep_time,
+        cook_time: template.cook_time,
+        servings: template.servings,
+        family_id: family.family_id,
+        created_by: user.id,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      toast({
+        title: 'Berhasil!',
+        description: 'Resep berhasil ditambahkan ke koleksi Anda',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Gagal',
+        description: 'Terjadi kesalahan saat menambahkan resep',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Filter templates
+  const filteredTemplates = recipeTemplates.filter((template) => {
+    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'Semua' || template.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Check if recipe already added
+  const isRecipeAdded = (templateId: string) => {
+    return recipes.some((recipe) => recipe.name === recipeTemplates.find((t) => t.id === templateId)?.name);
   };
 
   return (
@@ -362,22 +420,76 @@ const KitchenPage = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="recipes" className="space-y-4">
-          <div className="flex justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold">Koleksi Resep</h3>
+        <TabsContent value="recipes" className="space-y-4 sm:space-y-6">
+          {/* Resep Saya */}
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold">Resep Saya</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Koleksi resep pribadi keluarga</p>
+              </div>
+              <RecipeDialog trigger={<Button size="sm" className="w-full sm:w-auto"><Plus className="h-4 w-4 mr-2" />Tambah Resep</Button>} />
             </div>
-            <RecipeDialog trigger={<Button><Plus className="h-4 w-4 mr-2" />Tambah Resep</Button>} />
+            {recipes.length === 0 ? (
+              <Card><CardContent className="py-8 sm:py-12"><div className="text-center text-muted-foreground"><ChefHat className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" /><p className="text-sm sm:text-base">Belum ada resep</p><p className="text-xs sm:text-sm mt-1 sm:mt-2">Tambahkan resep sendiri atau pilih dari template</p></div></CardContent></Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                {recipes.map((r) => (
+                  <Card key={r.id}><CardHeader className="pb-3"><div className="flex justify-between gap-2"><div className="flex-1 min-w-0"><CardTitle className="text-base sm:text-lg line-clamp-1">{r.name}</CardTitle><p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-1">{r.description}</p></div><div className="flex gap-1 flex-shrink-0"><RecipeDialog recipe={r} trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-3 w-3 sm:h-4 sm:w-4" /></Button>} /><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteRecipeMutation.mutate(r.id)}><Trash2 className="h-3 w-3 sm:h-4 sm:w-4" /></Button></div></div></CardHeader></Card>
+                ))}
+              </div>
+            )}
           </div>
-          {recipes.length === 0 ? (
-            <Card><CardContent className="py-12"><div className="text-center text-muted-foreground"><ChefHat className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>Belum ada resep</p></div></CardContent></Card>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {recipes.map((r) => (
-                <Card key={r.id}><CardHeader><div className="flex justify-between"><div><CardTitle className="text-lg">{r.name}</CardTitle></div><div className="flex gap-1"><RecipeDialog recipe={r} trigger={<Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>} /><Button variant="ghost" size="icon" onClick={() => deleteRecipeMutation.mutate(r.id)}><Trash2 className="h-4 w-4" /></Button></div></div></CardHeader></Card>
-              ))}
+
+          {/* Template Resep */}
+          <div>
+            <div className="mb-4">
+              <h3 className="text-base sm:text-lg font-semibold">Template Resep Populer</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Pilih resep masakan Indonesia yang mudah dan praktis</p>
             </div>
-          )}
+
+            {/* Search & Filter */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cari resep..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 text-sm"
+                />
+              </div>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-[180px] text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECIPE_CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category} className="text-sm">
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Template Grid */}
+            {filteredTemplates.length === 0 ? (
+              <Card><CardContent className="py-8 sm:py-12"><div className="text-center text-muted-foreground"><ChefHat className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" /><p className="text-sm sm:text-base">Tidak ada resep yang sesuai</p></div></CardContent></Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {filteredTemplates.map((template) => (
+                  <RecipeTemplateCard
+                    key={template.id}
+                    recipe={template}
+                    onPreview={setPreviewRecipe}
+                    onAddToCollection={(recipe) => addTemplateMutation.mutate(recipe)}
+                    isAdded={isRecipeAdded(template.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="meal-plan" className="space-y-4">
@@ -439,6 +551,15 @@ const KitchenPage = () => {
           editData={editingItem}
         />
       )}
+
+      {/* Recipe Template Preview */}
+      <RecipeTemplatePreview
+        recipe={previewRecipe}
+        open={!!previewRecipe}
+        onOpenChange={(open) => !open && setPreviewRecipe(null)}
+        onAddToCollection={(recipe) => addTemplateMutation.mutate(recipe)}
+        isAdded={previewRecipe ? isRecipeAdded(previewRecipe.id) : false}
+      />
 
       {/* Delete Confirmations */}
       <AlertDialog

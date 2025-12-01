@@ -16,12 +16,14 @@ import { Switch } from '@/components/ui/switch';
 interface PricingPlan {
   id: string;
   name: string;
-  tier: 'free' | 'family' | 'premium';
-  price: number;
-  billing_period: 'monthly' | 'yearly';
-  features: string[];
-  is_active: boolean;
-  display_order: number;
+  price_monthly: number;
+  price_yearly: number;
+  features: any;
+  is_popular: boolean;
+  published: boolean;
+  display_order: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 const PricingAdmin = () => {
@@ -34,11 +36,11 @@ const PricingAdmin = () => {
   // Form states
   const [formData, setFormData] = useState({
     name: '',
-    tier: 'free' as 'free' | 'family' | 'premium',
-    price: 0,
-    billing_period: 'monthly' as 'monthly' | 'yearly',
+    price_monthly: 0,
+    price_yearly: 0,
     features: '',
-    is_active: true,
+    is_popular: false,
+    published: true,
     display_order: 0,
   });
 
@@ -46,7 +48,7 @@ const PricingAdmin = () => {
     queryKey: ['pricing-plans-admin'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('pricing_plans')
+        .from('pricing_tiers_admin')
         .select('*')
         .order('display_order', { ascending: true });
 
@@ -58,7 +60,7 @@ const PricingAdmin = () => {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const { error } = await supabase
-        .from('pricing_plans')
+        .from('pricing_tiers_admin')
         .insert([{
           ...data,
           features: JSON.parse(data.features),
@@ -80,7 +82,7 @@ const PricingAdmin = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const { error } = await supabase
-        .from('pricing_plans')
+        .from('pricing_tiers_admin')
         .update({
           ...data,
           features: JSON.parse(data.features),
@@ -104,7 +106,7 @@ const PricingAdmin = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('pricing_plans')
+        .from('pricing_tiers_admin')
         .delete()
         .eq('id', id);
 
@@ -125,12 +127,12 @@ const PricingAdmin = () => {
     setEditingPlan(plan);
     setFormData({
       name: plan.name,
-      tier: plan.tier,
-      price: plan.price,
-      billing_period: plan.billing_period,
+      price_monthly: plan.price_monthly,
+      price_yearly: plan.price_yearly,
       features: JSON.stringify(plan.features, null, 2),
-      is_active: plan.is_active,
-      display_order: plan.display_order,
+      is_popular: plan.is_popular,
+      published: plan.published,
+      display_order: plan.display_order || 0,
     });
     setDialogOpen(true);
   };
@@ -159,23 +161,18 @@ const PricingAdmin = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      tier: 'free',
-      price: 0,
-      billing_period: 'monthly',
+      price_monthly: 0,
+      price_yearly: 0,
       features: '[]',
-      is_active: true,
+      is_popular: false,
+      published: true,
       display_order: 0,
     });
     setEditingPlan(null);
   };
 
-  const getTierBadge = (tier: string) => {
-    const colors: Record<string, string> = {
-      free: 'bg-gray-100 text-gray-800',
-      family: 'bg-blue-100 text-blue-800',
-      premium: 'bg-yellow-100 text-yellow-800',
-    };
-    return <Badge className={colors[tier]}>{tier.toUpperCase()}</Badge>;
+  const getTierBadge = (name: string) => {
+    return <Badge>{name}</Badge>;
   };
 
   if (isLoading) {
@@ -220,7 +217,7 @@ const PricingAdmin = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {plans.filter(p => p.is_active).length}
+              {plans.filter(p => p.published).length}
             </div>
           </CardContent>
         </Card>
@@ -232,7 +229,7 @@ const PricingAdmin = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rp {Math.max(...plans.map(p => p.price), 0).toLocaleString('id-ID')}
+              Rp {Math.max(...plans.map(p => p.price_monthly), 0).toLocaleString('id-ID')}
             </div>
           </CardContent>
         </Card>
@@ -241,18 +238,20 @@ const PricingAdmin = () => {
       {/* Plans List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((plan) => (
-          <Card key={plan.id} className={!plan.is_active ? 'opacity-60' : ''}>
+          <Card key={plan.id} className={!plan.published ? 'opacity-60' : ''}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{plan.name}</CardTitle>
-                {getTierBadge(plan.tier)}
+                {plan.is_popular && <Badge className="bg-yellow-500">Popular</Badge>}
               </div>
               <CardDescription>
                 <div className="text-2xl font-bold mt-2">
-                  Rp {plan.price.toLocaleString('id-ID')}
-                  <span className="text-sm font-normal text-muted-foreground">
-                    /{plan.billing_period === 'monthly' ? 'bulan' : 'tahun'}
-                  </span>
+                  Rp {plan.price_monthly.toLocaleString('id-ID')}
+                  <span className="text-sm font-normal text-muted-foreground">/bulan</span>
+                </div>
+                <div className="text-lg mt-1">
+                  Rp {plan.price_yearly.toLocaleString('id-ID')}
+                  <span className="text-sm font-normal text-muted-foreground">/tahun</span>
                 </div>
               </CardDescription>
             </CardHeader>
@@ -260,13 +259,13 @@ const PricingAdmin = () => {
               <div>
                 <p className="text-sm font-medium mb-2">Fitur:</p>
                 <ul className="text-sm space-y-1">
-                  {plan.features.slice(0, 3).map((feature, idx) => (
+                  {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature: any, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <Check className="h-4 w-4 text-green-500 mt-0.5" />
                       <span>{feature}</span>
                     </li>
                   ))}
-                  {plan.features.length > 3 && (
+                  {Array.isArray(plan.features) && plan.features.length > 3 && (
                     <li className="text-muted-foreground">
                       +{plan.features.length - 3} fitur lainnya
                     </li>
@@ -276,10 +275,10 @@ const PricingAdmin = () => {
 
               <div className="flex items-center gap-2 text-sm">
                 <Badge variant="outline">Order: {plan.display_order}</Badge>
-                {plan.is_active ? (
-                  <Badge variant="default" className="bg-green-500">Aktif</Badge>
+                {plan.published ? (
+                  <Badge variant="default" className="bg-green-500">Published</Badge>
                 ) : (
-                  <Badge variant="secondary">Nonaktif</Badge>
+                  <Badge variant="secondary">Draft</Badge>
                 )}
               </div>
 
@@ -308,53 +307,34 @@ const PricingAdmin = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nama Paket</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Family Plan"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tier</Label>
-                <Select value={formData.tier} onValueChange={(value: any) => setFormData({ ...formData, tier: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="family">Family</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Nama Paket</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Family Plan"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Harga (Rp)</Label>
+                <Label>Harga Bulanan (Rp)</Label>
                 <Input
                   type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                  value={formData.price_monthly}
+                  onChange={(e) => setFormData({ ...formData, price_monthly: parseFloat(e.target.value) || 0 })}
                   placeholder="49000"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Periode</Label>
-                <Select value={formData.billing_period} onValueChange={(value: any) => setFormData({ ...formData, billing_period: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Harga Tahunan (Rp)</Label>
+                <Input
+                  type="number"
+                  value={formData.price_yearly}
+                  onChange={(e) => setFormData({ ...formData, price_yearly: parseFloat(e.target.value) || 0 })}
+                  placeholder="490000"
+                />
               </div>
             </div>
 
@@ -372,7 +352,7 @@ const PricingAdmin = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Display Order</Label>
                 <Input
@@ -385,10 +365,18 @@ const PricingAdmin = () => {
 
               <div className="flex items-center space-x-2 pt-8">
                 <Switch
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  checked={formData.is_popular}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_popular: checked })}
                 />
-                <Label>Paket Aktif</Label>
+                <Label>Popular</Label>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-8">
+                <Switch
+                  checked={formData.published}
+                  onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
+                />
+                <Label>Published</Label>
               </div>
             </div>
           </div>
