@@ -14,7 +14,7 @@ export const useFamily = () => {
         .from('family_members')
         .select('family_id, role, family_groups(*)')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

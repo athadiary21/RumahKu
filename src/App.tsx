@@ -29,6 +29,7 @@ const VaultPage = lazy(() => import("./pages/dashboard/VaultPage"));
 const FamilyPage = lazy(() => import("./pages/dashboard/FamilyPage"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const Install = lazy(() => import("./pages/Install"));
+const JoinFamily = lazy(() => import("./pages/JoinFamily"));
 
 // Lazy load admin pages
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -84,6 +85,14 @@ const App = () => (
                       } 
                     />
                     <Route 
+                      path="/join/:token" 
+                      element={
+                        <Suspense fallback={<PageLoader message="Memuat undangan..." />}>
+                          <JoinFamily />
+                        </Suspense>
+                      }
+                    />
+                    <Route
                       path="/dashboard" 
                       element={
                         <ProtectedRoute>
