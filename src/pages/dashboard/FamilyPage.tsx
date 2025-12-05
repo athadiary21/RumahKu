@@ -3,13 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Users, UserPlus, Crown, Trash2, Mail } from 'lucide-react';
+import { Users, UserPlus, Crown, Trash2, User } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useFamily } from '@/hooks/useFamily';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { InviteFamilyDialog } from '@/components/family/InviteFamilyDialog';
+import { InviteMemberDialog } from '@/components/family/InviteMemberDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,24 +27,25 @@ interface FamilyMember {
   role: string;
   joined_at: string;
   profiles: {
-    email: string;
     full_name: string | null;
-  };
+  } | null;
 }
 
 const FamilyPage = () => {
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<FamilyMember | null>(null);
   const { data: familyData } = useFamily();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const familyId = familyData?.family_id || '';
+  const familyName = familyData?.family_groups?.name || 'Keluarga Saya';
+
   // Fetch family members
   const { data: members = [], isLoading } = useQuery({
-    queryKey: ['family-members', familyData?.family_id],
+    queryKey: ['family-members', familyId],
     queryFn: async () => {
-      if (!familyData?.family_id) return [];
+      if (!familyId) return [];
       
       const { data, error } = await supabase
         .from('family_members')
@@ -54,17 +55,16 @@ const FamilyPage = () => {
           role,
           joined_at,
           profiles:user_id (
-            email,
             full_name
           )
         `)
-        .eq('family_id', familyData.family_id)
+        .eq('family_id', familyId)
         .order('joined_at');
 
       if (error) throw error;
       return data as FamilyMember[];
     },
-    enabled: !!familyData?.family_id,
+    enabled: !!familyId,
   });
 
   // Get current user's role
@@ -89,7 +89,7 @@ const FamilyPage = () => {
       });
       setMemberToRemove(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Gagal menghapus anggota',
@@ -104,7 +104,7 @@ const FamilyPage = () => {
     }
   };
 
-  const getInitials = (name: string | null, email: string) => {
+  const getInitials = (name: string | null) => {
     if (name) {
       return name
         .split(' ')
@@ -113,7 +113,11 @@ const FamilyPage = () => {
         .toUpperCase()
         .slice(0, 2);
     }
-    return email[0].toUpperCase();
+    return 'U';
+  };
+
+  const getDisplayName = (member: FamilyMember) => {
+    return member.profiles?.full_name || 'Anggota';
   };
 
   const getRoleBadge = (role: string) => {
@@ -124,6 +128,9 @@ const FamilyPage = () => {
           Admin
         </Badge>
       );
+    }
+    if (role === 'child') {
+      return <Badge variant="outline">Anak</Badge>;
     }
     return <Badge variant="secondary">Member</Badge>;
   };
@@ -140,10 +147,9 @@ const FamilyPage = () => {
             Kelola anggota keluarga dan kolaborasi
           </p>
         </div>
-        <Button onClick={() => setInviteDialogOpen(true)}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Undang Anggota
-        </Button>
+        {isAdmin && familyId && (
+          <InviteMemberDialog familyId={familyId} familyName={familyName} />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -175,10 +181,9 @@ const FamilyPage = () => {
                 <p className="text-sm mb-4">
                   Undang anggota keluarga untuk mulai berkolaborasi
                 </p>
-                <Button onClick={() => setInviteDialogOpen(true)}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Undang Anggota Pertama
-                </Button>
+                {isAdmin && familyId && (
+                  <InviteMemberDialog familyId={familyId} familyName={familyName} />
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -189,13 +194,13 @@ const FamilyPage = () => {
                   >
                     <Avatar className="h-12 w-12">
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {getInitials(member.profiles.full_name, member.profiles.email)}
+                        {getInitials(member.profiles?.full_name || null)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-medium truncate">
-                          {member.profiles.full_name || member.profiles.email}
+                          {getDisplayName(member)}
                         </p>
                         {getRoleBadge(member.role)}
                         {member.user_id === user?.id && (
@@ -203,8 +208,8 @@ const FamilyPage = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="h-3 w-3" />
-                        <p className="truncate">{member.profiles.email}</p>
+                        <User className="h-3 w-3" />
+                        <p className="truncate">ID: {member.user_id.slice(0, 8)}...</p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Bergabung {new Date(member.joined_at).toLocaleDateString('id-ID', {
@@ -240,7 +245,7 @@ const FamilyPage = () => {
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Nama Keluarga</p>
-                <p className="font-medium">{familyData?.family_name || 'Keluarga Saya'}</p>
+                <p className="font-medium">{familyName}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Anggota</p>
@@ -255,37 +260,29 @@ const FamilyPage = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Tips Kolaborasi</CardTitle>
+              <CardTitle>Cara Undang Anggota</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <div className="flex gap-2">
-                <span className="text-primary">•</span>
-                <p>Undang anggota keluarga untuk berbagi kalender dan keuangan</p>
+                <span className="text-primary font-bold">1.</span>
+                <p>Klik tombol "Undang Anggota" di atas</p>
               </div>
               <div className="flex gap-2">
-                <span className="text-primary">•</span>
-                <p>Admin dapat mengelola anggota dan pengaturan keluarga</p>
+                <span className="text-primary font-bold">2.</span>
+                <p>Pilih role dan buat link undangan</p>
               </div>
               <div className="flex gap-2">
-                <span className="text-primary">•</span>
-                <p>Semua anggota dapat melihat dan mengedit data keluarga</p>
+                <span className="text-primary font-bold">3.</span>
+                <p>Salin link dan bagikan ke anggota keluarga</p>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-primary font-bold">4.</span>
+                <p>Mereka buka link, login/daftar, lalu otomatis bergabung</p>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Invite Dialog */}
-      <InviteFamilyDialog
-        open={inviteDialogOpen}
-        onOpenChange={(open) => {
-          setInviteDialogOpen(open);
-          if (!open) {
-            // Refresh members list when dialog closes
-            queryClient.invalidateQueries({ queryKey: ['family-members'] });
-          }
-        }}
-      />
 
       {/* Remove Member Confirmation */}
       <AlertDialog open={!!memberToRemove} onOpenChange={() => setMemberToRemove(null)}>
@@ -294,7 +291,7 @@ const FamilyPage = () => {
             <AlertDialogTitle>Hapus Anggota Keluarga?</AlertDialogTitle>
             <AlertDialogDescription>
               Apakah Anda yakin ingin menghapus{' '}
-              <strong>{memberToRemove?.profiles.email}</strong> dari keluarga?
+              <strong>{memberToRemove?.profiles?.full_name || 'anggota ini'}</strong> dari keluarga?
               Mereka akan kehilangan akses ke semua data keluarga.
             </AlertDialogDescription>
           </AlertDialogHeader>
