@@ -446,6 +446,85 @@ export type Database = {
           },
         ]
       }
+      family_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          family_id: string
+          id: string
+          is_recurring: boolean
+          last_completed_at: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          recurrence_pattern:
+            | Database["public"]["Enums"]["recurrence_pattern"]
+            | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          family_id: string
+          id?: string
+          is_recurring?: boolean
+          last_completed_at?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_pattern?:
+            | Database["public"]["Enums"]["recurrence_pattern"]
+            | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          family_id?: string
+          id?: string
+          is_recurring?: boolean
+          last_completed_at?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_pattern?:
+            | Database["public"]["Enums"]["recurrence_pattern"]
+            | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_tasks_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faqs_admin: {
         Row: {
           answer: string
@@ -1470,7 +1549,10 @@ export type Database = {
         | "purple"
         | "pink"
         | "red"
+      recurrence_pattern: "daily" | "weekly" | "monthly"
       subscription_tier: "free" | "family" | "premium"
+      task_priority: "low" | "medium" | "high"
+      task_status: "pending" | "in_progress" | "completed"
       transaction_type: "income" | "expense" | "transfer"
     }
     CompositeTypes: {
@@ -1609,7 +1691,10 @@ export const Constants = {
         "pink",
         "red",
       ],
+      recurrence_pattern: ["daily", "weekly", "monthly"],
       subscription_tier: ["free", "family", "premium"],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["pending", "in_progress", "completed"],
       transaction_type: ["income", "expense", "transfer"],
     },
   },

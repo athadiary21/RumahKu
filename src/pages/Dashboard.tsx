@@ -15,7 +15,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  ShieldCheck
+  ShieldCheck,
+  ListTodo
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -47,6 +48,7 @@ const Dashboard = () => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Calendar, label: 'Kalender', path: '/dashboard/calendar' },
+    { icon: ListTodo, label: 'Tugas', path: '/dashboard/tasks' },
     { icon: Utensils, label: 'Dapur & Belanja', path: '/dashboard/kitchen' },
     { icon: Wallet, label: 'Keuangan', path: '/dashboard/finance' },
     { icon: Shield, label: 'Vault Digital', path: '/dashboard/vault' },

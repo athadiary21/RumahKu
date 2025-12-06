@@ -27,6 +27,7 @@ const KitchenPage = lazy(() => import("./pages/dashboard/KitchenPage"));
 const FinancePage = lazy(() => import("./pages/dashboard/FinancePage"));
 const VaultPage = lazy(() => import("./pages/dashboard/VaultPage"));
 const FamilyPage = lazy(() => import("./pages/dashboard/FamilyPage"));
+const TasksPage = lazy(() => import("./pages/dashboard/TasksPage"));
 const SettingsPage = lazy(() => import("./pages/dashboard/SettingsPage"));
 const Install = lazy(() => import("./pages/Install"));
 const JoinFamily = lazy(() => import("./pages/JoinFamily"));
@@ -130,6 +131,11 @@ const App = () => (
                       <Route path="family" element={
                         <Suspense fallback={<PageLoader message="Memuat keluarga..." />}>
                           <FamilyPage />
+                        </Suspense>
+                      } />
+                      <Route path="tasks" element={
+                        <Suspense fallback={<PageLoader message="Memuat tugas..." />}>
+                          <TasksPage />
                         </Suspense>
                       } />
                       <Route path="settings" element={
