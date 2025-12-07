@@ -70,7 +70,7 @@ const translations = {
     
     // Features
     "features.title": "Semua yang Keluarga Anda Butuhkan",
-    "features.subtitle": "Empat modul yang bekerja bersama untuk mengatur kehidupan keluarga Anda",
+    "features.subtitle": "Enam modul lengkap yang bekerja bersama untuk mengatur kehidupan keluarga Anda",
     "features.calendar.title": "Kalender Keluarga",
     "features.calendar.desc": "Manajemen jadwal terpadu agar tidak ada yang terlewat. Kategori berwarna, pengingat cerdas, dan sinkronisasi real-time.",
     "features.kitchen.title": "Dapur & Belanja",
@@ -79,6 +79,10 @@ const translations = {
     "features.finance.desc": "Pelacak anggaran dengan metode amplop, dukungan multi-dompet, perencanaan tujuan, dan laporan visual. Tahu persis kemana uang Anda pergi.",
     "features.vault.title": "Vault Digital",
     "features.vault.desc": "Simpan dokumen penting dengan enkripsi. Akta kelahiran, asuransi, paspor - semua terorganisir dan dapat diakses saat dibutuhkan.",
+    "features.family.title": "Manajemen Keluarga",
+    "features.family.desc": "Kelola anggota keluarga, atur peran (Admin, Member, Child), dan undang anggota baru untuk bergabung dengan keluarga Anda.",
+    "features.tasks.title": "Tugas Keluarga",
+    "features.tasks.desc": "Bagi tugas rumah tangga dengan mudah. Assign ke anggota, set prioritas, dan buat tugas berulang harian, mingguan, atau bulanan.",
     
     // How It Works
     "howItWorks.title": "Lihat Keajaiban dalam Aksi",
@@ -231,7 +235,7 @@ const translations = {
     
     // Features
     "features.title": "Everything Your Family Needs",
-    "features.subtitle": "Four powerful modules that work together seamlessly to organize your family life",
+    "features.subtitle": "Six complete modules that work together seamlessly to organize your family life",
     "features.calendar.title": "Family Calendar",
     "features.calendar.desc": "Unified schedule management so nothing gets missed or conflicts. Color-coded categories, smart reminders, and real-time sync across all devices.",
     "features.kitchen.title": "Kitchen & Shopping",
@@ -240,6 +244,10 @@ const translations = {
     "features.finance.desc": "Budget tracker with envelope method, multi-wallet support, goal planning, and visual reports. Know exactly where your money goes.",
     "features.vault.title": "Digital Vault",
     "features.vault.desc": "Securely store important documents with encryption. Birth certificates, insurance, passports - all organized and accessible when you need them.",
+    "features.family.title": "Family Management",
+    "features.family.desc": "Manage family members, set roles (Admin, Member, Child), and invite new members to join your family.",
+    "features.tasks.title": "Family Tasks",
+    "features.tasks.desc": "Divide household chores easily. Assign to members, set priorities, and create daily, weekly, or monthly recurring tasks.",
     
     // How It Works
     "howItWorks.title": "See The Magic in Action",

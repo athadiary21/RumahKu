@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Calendar, Utensils, Wallet, Shield, Users, Keyboard } from 'lucide-react';
+import { Calendar, Utensils, Wallet, Shield, Users, Keyboard, CheckSquare, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface OnboardingStep {
@@ -19,8 +19,8 @@ export function OnboardingTour() {
   const steps: OnboardingStep[] = [
     {
       title: 'Selamat Datang di RumahKu! 🏠',
-      description: 'RumahKu adalah platform manajemen keluarga yang membantu Anda mengatur kehidupan keluarga dengan lebih mudah dan terorganisir. Mari kami tunjukkan fitur-fitur utamanya!',
-      icon: Users,
+      description: 'RumahKu adalah platform manajemen keluarga lengkap yang membantu Anda mengatur kehidupan keluarga dengan lebih mudah dan terorganisir. Mari kami tunjukkan semua fitur utamanya!',
+      icon: Home,
     },
     {
       title: 'Kalender Keluarga 📅',
@@ -30,25 +30,37 @@ export function OnboardingTour() {
     },
     {
       title: 'Dapur & Belanja 🍳',
-      description: 'Rencanakan menu mingguan, simpan resep favorit keluarga, dan buat daftar belanja yang terorganisir.',
+      description: 'Rencanakan menu mingguan dengan 27+ resep Indonesia, simpan resep favorit keluarga, dan buat daftar belanja yang terorganisir.',
       icon: Utensils,
       action: () => navigate('/dashboard/kitchen'),
     },
     {
       title: 'Keuangan Cerdas 💰',
-      description: 'Kelola budget keluarga, tracking pengeluaran, dan capai tujuan keuangan bersama dengan fitur manajemen keuangan yang lengkap.',
+      description: 'Kelola budget keluarga, tracking pengeluaran dengan grafik visual, dan capai tujuan keuangan bersama.',
       icon: Wallet,
       action: () => navigate('/dashboard/finance'),
     },
     {
       title: 'Vault Digital 🔒',
-      description: 'Simpan dokumen penting keluarga dengan aman seperti KTP, akta kelahiran, sertifikat, dan dokumen lainnya dalam satu tempat yang terenkripsi.',
+      description: 'Simpan dokumen penting keluarga dengan aman seperti KTP, akta kelahiran, sertifikat, dengan tracking tanggal kadaluarsa.',
       icon: Shield,
       action: () => navigate('/dashboard/vault'),
     },
     {
+      title: 'Manajemen Keluarga 👨‍👩‍👧‍👦',
+      description: 'Kelola anggota keluarga, atur role (Admin, Member, Child), dan undang anggota baru untuk bergabung dengan keluarga Anda.',
+      icon: Users,
+      action: () => navigate('/dashboard/family'),
+    },
+    {
+      title: 'Tugas Keluarga ✅',
+      description: 'Bagi tugas rumah tangga dengan mudah! Assign tugas ke anggota keluarga, set prioritas, dan buat tugas berulang (harian/mingguan/bulanan).',
+      icon: CheckSquare,
+      action: () => navigate('/dashboard/tasks'),
+    },
+    {
       title: 'Keyboard Shortcuts ⌨️',
-      description: 'Gunakan keyboard shortcuts untuk navigasi lebih cepat! Tekan "?" untuk melihat daftar lengkap shortcuts. Contoh: g+d untuk Dashboard, g+c untuk Kalender.',
+      description: 'Navigasi cepat dengan keyboard! Tekan "?" untuk bantuan. Shortcuts: g+d (Dashboard), g+c (Kalender), g+k (Dapur), g+f (Keuangan), g+v (Vault), g+p (Keluarga), g+t (Tugas), g+s (Pengaturan).',
       icon: Keyboard,
     },
   ];

@@ -61,6 +61,10 @@ export function useKeyboardShortcuts() {
               navigate('/dashboard/family');
               toast({ title: 'Navigasi', description: 'Menuju Keluarga' });
               break;
+            case 't':
+              navigate('/dashboard/tasks');
+              toast({ title: 'Navigasi', description: 'Menuju Tugas Keluarga' });
+              break;
             case 's':
               navigate('/dashboard/settings');
               toast({ title: 'Navigasi', description: 'Menuju Pengaturan' });
@@ -88,6 +92,7 @@ export function useKeyboardShortcuts() {
                 <div><strong>g + f</strong>: Keuangan</div>
                 <div><strong>g + v</strong>: Vault Digital</div>
                 <div><strong>g + p</strong>: Keluarga</div>
+                <div><strong>g + t</strong>: Tugas Keluarga</div>
                 <div><strong>g + s</strong>: Pengaturan</div>
                 <div><strong>?</strong>: Tampilkan bantuan ini</div>
               </div>

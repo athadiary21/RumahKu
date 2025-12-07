@@ -4,7 +4,7 @@ import calendarIcon from "@/assets/icon-calendar.jpg";
 import kitchenIcon from "@/assets/icon-kitchen.jpg";
 import financeIcon from "@/assets/icon-finance.jpg";
 import vaultIcon from "@/assets/icon-vault.jpg";
-import { Calendar, ChefHat, Wallet, Shield } from "lucide-react";
+import { Calendar, ChefHat, Wallet, Shield, Users, CheckSquare } from "lucide-react";
 
 const Features = () => {
   const { t } = useLanguage();
@@ -38,6 +38,20 @@ const Features = () => {
       lucideIcon: Shield,
       color: "from-accent to-primary",
     },
+    {
+      titleKey: "features.family.title",
+      descKey: "features.family.desc",
+      icon: calendarIcon,
+      lucideIcon: Users,
+      color: "from-pink-500 to-rose-400",
+    },
+    {
+      titleKey: "features.tasks.title",
+      descKey: "features.tasks.desc",
+      icon: kitchenIcon,
+      lucideIcon: CheckSquare,
+      color: "from-cyan-500 to-teal-400",
+    },
   ];
 
   return (
@@ -52,7 +66,7 @@ const Features = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {features.map((feature, index) => (
             <Card 
               key={index} 
