@@ -242,7 +242,7 @@ const FamilyPage = () => {
             Kelola anggota keluarga dan kolaborasi
           </p>
         </div>
-        {isAdmin && familyId && (
+        {familyId && (
           <InviteMemberDialog familyId={familyId} familyName={familyName} />
         )}
       </div>
