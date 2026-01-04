@@ -1,7 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import TrustedBy from "@/components/TrustedBy";
-import FeaturedIn from "@/components/FeaturedIn";
 import Features from "@/components/Features";
 import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
@@ -13,12 +12,11 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main>
         <Hero />
         <TrustedBy />
-        <FeaturedIn />
         <div id="features">
           <Features />
         </div>
