@@ -34,6 +34,9 @@ All colors MUST be HSL.
     --muted: 210 20% 96%;
     --muted-foreground: 215 15% 45%;
 
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 92% 20%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
@@ -90,6 +93,9 @@ All colors MUST be HSL.
 
     --muted: 215 25% 18%;
     --muted-foreground: 215 10% 65%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 38 92% 10%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
