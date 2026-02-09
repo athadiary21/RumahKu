@@ -20,6 +20,7 @@ const Footer = () => {
       });
       return;
     }
+    // TODO: Implement newsletter subscription API
     toast({
       title: 'Berhasil!',
       description: 'Terima kasih telah berlangganan newsletter kami',
@@ -29,9 +30,9 @@ const Footer = () => {
   
   return (
     <footer className="border-t bg-card">
-      <div className="container mx-auto px-3 py-12">
-        <div className="grid grid-cols-5 gap-8">
-          <div className="space-y-4">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="space-y-4 md:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-accent">
                 <Home className="h-6 w-6 text-white" />
@@ -99,20 +100,20 @@ const Footer = () => {
             </ul>
           </div>
           
-          <div>
+          <div className="md:col-span-2 lg:col-span-1">
             <h3 className="font-semibold mb-4">{t("footer.newsletter")}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {t("footer.newsletterDesc")}
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-2">
               <Input 
                 type="email" 
                 placeholder={t("footer.email")}
-                className="w-full"
+                className="flex-1"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button type="submit" variant="default" className="w-full">
+              <Button type="submit" variant="default" className="sm:w-auto w-full">
                 {t("footer.subscribe")}
               </Button>
             </form>

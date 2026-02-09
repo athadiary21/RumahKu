@@ -14,10 +14,12 @@ import {
   Users, 
   Settings, 
   LogOut,
+  Menu,
   ShieldCheck,
   ListTodo
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 
@@ -108,13 +110,31 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Always visible Sidebar */}
-      <aside className="w-64 border-r bg-card flex-shrink-0">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:block w-64 border-r bg-card">
         <SidebarContent />
       </aside>
 
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b p-4 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-primary">RumahKu</h1>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0">
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pt-16 lg:pt-0">
         <div className="container mx-auto p-6">
           <Outlet />
         </div>

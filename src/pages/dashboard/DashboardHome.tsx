@@ -151,7 +151,7 @@ const DashboardHome = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {quickActions.map((action) => (
           <Card 
             key={action.title} 
@@ -264,13 +264,13 @@ const DashboardHome = () => {
         </CardHeader>
         <CardContent>
           {(eventsLoading || budgetLoading || docsLoading) ? (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <DashboardCardSkeleton />
               <DashboardCardSkeleton />
               <DashboardCardSkeleton />
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-muted rounded-lg">
                 <p className="text-2xl font-bold">{weekEvents.length}</p>
                 <p className="text-sm text-muted-foreground">Event Minggu Ini</p>
