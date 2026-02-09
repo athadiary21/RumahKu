@@ -28,8 +28,8 @@ const FAQ = () => {
 
   if (isLoading) {
     return (
-      <section className="py-20 md:py-32">
-        <div className="container mx-auto px-4">
+      <section className="py-16 lg:py-32">
+        <div className="container mx-auto px-3">
           <div className="text-center py-12">
             <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
           </div>
@@ -43,13 +43,13 @@ const FAQ = () => {
   }
 
   return (
-    <section className="py-12 sm:py-16 md:py-24 lg:py-32">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
+    <section className="py-16 lg:py-32">
+      <div className="container mx-auto px-3">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl lg:text-5xl font-bold mb-4">
             {t("faq.title")}
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground">
+          <p className="text-base text-muted-foreground">
             {t("faq.subtitle")}
           </p>
         </div>
