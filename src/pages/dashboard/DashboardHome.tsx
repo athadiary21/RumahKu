@@ -264,7 +264,7 @@ const DashboardHome = () => {
         </CardHeader>
         <CardContent>
           {(eventsLoading || budgetLoading || docsLoading) ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <DashboardCardSkeleton />
               <DashboardCardSkeleton />
               <DashboardCardSkeleton />
